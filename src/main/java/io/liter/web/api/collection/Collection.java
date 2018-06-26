@@ -14,11 +14,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Collection extends BaseEntity {
 
     @Id
-    private Long id;
+    private String id;
 
     private String collectionId;
-
-    private String userId;
 
     private String fileName;
 

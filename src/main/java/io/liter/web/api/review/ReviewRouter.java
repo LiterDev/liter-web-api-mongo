@@ -14,15 +14,14 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 @Configuration
 public class ReviewRouter {
 
-    //TODO::review 페이징처리
     @Bean
     public RouterFunction<ServerResponse> routerFunction(ReviewHandler handler) {
         return RouterFunctions
                 .nest(path("/review"),
-                        route(GET("/").and(accept(MediaType.APPLICATION_JSON_UTF8)), handler::findAllByUserId)
+                        route(GET("").and(accept(MediaType.APPLICATION_JSON_UTF8)), handler::findAllByUserId)
                                 .andRoute(GET("/{id}").and(accept(MediaType.APPLICATION_JSON_UTF8)), handler::findById)
                                 .andRoute(GET("/active/{id}").and(accept(MediaType.APPLICATION_JSON_UTF8)), handler::isActive)
-                                .andRoute(POST("/").and(accept(APPLICATION_JSON_UTF8)).and(contentType(APPLICATION_JSON_UTF8)), handler::post)
+                                .andRoute(POST(""), handler::post)
                                 .andRoute(PUT("/{id}").and(accept(APPLICATION_JSON_UTF8)), handler::put)
                                 .andRoute(DELETE("/{id}"), handler::delete)
                 );

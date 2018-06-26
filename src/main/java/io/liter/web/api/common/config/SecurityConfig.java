@@ -27,7 +27,7 @@ public class SecurityConfig {
             "/user/signUp",
             "/test/ws",
             "/sample/**",
-            "/review/**"
+            "/ssong/**"
     };
 
     @Bean

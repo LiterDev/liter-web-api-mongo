@@ -1,15 +1,12 @@
 package io.liter.web.api.sample;
 
-import io.liter.web.api.follower.Follower;
 import io.liter.web.api.follower.FollowerRepository;
-import io.liter.web.api.review.Review;
 import io.liter.web.api.review.ReviewContentType;
 import io.liter.web.api.review.ReviewRepository;
-import io.liter.web.api.ssong.ReactiveSsongRepository;
+import io.liter.web.api.tag.ReviewTagRepository;
 import io.liter.web.api.user.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.multipart.FilePart;
@@ -17,7 +14,6 @@ import org.springframework.http.codec.multipart.FormFieldPart;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.BodyExtractors;
-import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
@@ -29,7 +25,6 @@ import java.util.stream.Collectors;
 import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 import static org.springframework.web.reactive.function.server.ServerResponse.badRequest;
 import static org.springframework.web.reactive.function.server.ServerResponse.notFound;
-import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
 @Slf4j
 @Component
@@ -47,6 +42,8 @@ public class SampleHandler {
     private ReviewRepository reviewRepository;
     @Autowired
     private FollowerRepository followerRepository;
+    @Autowired
+    private ReviewTagRepository reviewTagRepository;
 
 
     /**
@@ -188,25 +185,4 @@ public class SampleHandler {
 
         return ServerResponse.ok().build();
     }
-
-    /**
-     * =================================================================================================================
-     */
-
-
-    public Mono<ServerResponse> test(ServerRequest request) {
-        log.info("]-----] test [-----[ ");
-
-        Flux<Follower> followerMono = this.followerRepository.findAllByUserId("5b277e9e7af94718fbb903dd");
-
-
-
-
-        return ServerResponse.ok().build();
-    }
-
-
-    /**
-     * =================================================================================================================
-     */
 }

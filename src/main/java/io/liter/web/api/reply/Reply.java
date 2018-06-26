@@ -14,7 +14,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Reply extends BaseEntity {
 
     @Id
-    private Long id;
+    private String id;
 
     private String reviewId;
 

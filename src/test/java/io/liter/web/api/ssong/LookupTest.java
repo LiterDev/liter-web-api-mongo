@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.LookupOperation;
@@ -31,19 +32,23 @@ public class LookupTest {
     @Test
     public void lookupOperation() {
         LookupOperation lookupOperation = LookupOperation.newLookup()
-                .from("Follower")
+                .from("follower")
                 .localField("userId")
                 .foreignField("followerId")
-                .as("followers");
+                .as("follower");
 
-        Aggregation aggregation = Aggregation.newAggregation(Aggregation.match(Criteria.where("userId").is("1")), lookupOperation);
+        Aggregation aggregation = Aggregation.newAggregation(
+                lookupOperation,
+                Aggregation.match(Criteria.where("follower.userId").is("fajigGIiJKMwIxsu")),
+                Aggregation.skip(0),
+                Aggregation.limit(10)
+        );
 
+        List<Review> results = mongoTemplate
+                .aggregate(aggregation, "review", Review.class)
+                .getMappedResults();
 
-        List<Review> results = mongoTemplate.aggregate(aggregation, "Review", Review.class).getMappedResults();
-
-
-        log.debug("]-----] result [-----[ {}", results);
-
-
+        log.debug("]-----] results [-----[ {}", results.size());
+        log.debug("]-----] results [-----[ {}", results);
     }
 }

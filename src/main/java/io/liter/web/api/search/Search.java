@@ -14,7 +14,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Search extends BaseEntity {
 
     @Id
-    private Long id;
+    private String id;
 
     private String searchValue;
 

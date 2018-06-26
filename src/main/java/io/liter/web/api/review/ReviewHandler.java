@@ -5,10 +5,12 @@ import io.liter.web.api.follower.FollowerRepository;
 import io.liter.web.api.review.view.Pagination;
 import io.liter.web.api.review.view.ReviewDetail;
 import io.liter.web.api.review.view.ReviewList;
-import io.liter.web.api.user.User;
 import io.liter.web.api.user.UserRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.LookupOperation;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.http.codec.multipart.FormFieldPart;
 import org.springframework.http.codec.multipart.Part;
 import org.springframework.stereotype.Component;
@@ -18,14 +20,20 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
-import java.net.URI;
+import java.util.List;
 import java.util.Map;
 
+import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.web.reactive.function.server.ServerResponse.*;
 
 @Slf4j
 @Component
 public class ReviewHandler {
+
+    //todo:getAll -> findAllByUserId
+    //todo:post -> post
+
+    private final MongoTemplate mongoTemplate;
 
     private final UserRepository userRepository;
 
@@ -35,11 +43,14 @@ public class ReviewHandler {
 
     private final FollowerRepository followerRepository;
 
-    public ReviewHandler(UserRepository userRepository
+    public ReviewHandler(
+            MongoTemplate mongoTemplate
+            , UserRepository userRepository
             , ReviewRepository reviewRepository
             , CollectionRepository collectionRepository
             , FollowerRepository followerRepository) {
 
+        this.mongoTemplate = mongoTemplate;
         this.userRepository = userRepository;
         this.reviewRepository = reviewRepository;
         this.collectionRepository = collectionRepository;
@@ -52,42 +63,38 @@ public class ReviewHandler {
     public Mono<ServerResponse> findAllByUserId(ServerRequest request) {
         log.info("]-----] ReviewHandler::getMainList call [-----[ ");
 
-        Integer page = Integer.parseInt(request.queryParam("page").get());
-        Integer size = Integer.parseInt(request.queryParam("size").get());
+        Integer page = request.queryParam("page").get().isEmpty() ? 0 : Integer.parseInt(request.queryParam("page").get());
+        Integer size = request.queryParam("size").get().isEmpty() ? 5 : Integer.parseInt(request.queryParam("size").get());
 
         ReviewList reviewList = new ReviewList();
         Pagination pagination = new Pagination();
 
-        /*return
-         *//*request.principal()
-                .flatMap(p -> userRepository.findByUserName(p.getName()))*//*
-                this.userRepository.findByUsername("test")
-                        .flatMap(user -> {
-                            reviewList.setUser(user);
+        String userName = request.principal().map(p -> p.getName()).toString();
 
-                            return this.reviewRepository.findByUserId(user.getId(),PageRequest.of(page,size))
-                                    .collectList()
-                                    .map(reviews -> {
-                                        reviewList.setReview(reviews);
-                                        return user;
-                                    });
-                        })
-                        .flatMap(user -> {
-                            pagination.setPage(page);
-                            pagination.setSize(size);
+        return this.userRepository.findByUsername("test1")
+                .flatMap(user -> {
+                    LookupOperation lookupOperation = LookupOperation.newLookup()
+                            .from("follower")
+                            .localField("userId")
+                            .foreignField("followerId")
+                            .as("follower");
 
-                            return this.reviewRepository.countByUserId(user.getId())
-                                    .map(c -> {
-                                        pagination.setTotal(c);
-                                        reviewList.setPagination(pagination);
+                    Aggregation aggregation = Aggregation.newAggregation(
+                            lookupOperation,
+                            Aggregation.match(Criteria.where("follower.userId").is(user.getId())),
+                            Aggregation.skip(page),
+                            Aggregation.limit(size)
+                    );
 
-                                        return reviewList;
-                                    });
-                        })
-                        .flatMap(result -> ok().body(BodyInserters.fromObject(reviewList)))
-                        .switchIfEmpty(notFound().build());*/
+                    List<Review> reviews = mongoTemplate
+                            .aggregate(aggregation, "review", Review.class)
+                            .getMappedResults();
 
-        return ServerResponse.ok().build();
+                    log.debug("]-----] ReviewHandler::reviews [-----[ {}", reviews);
+
+                    return ok().body(BodyInserters.fromObject(reviews));
+
+                }).switchIfEmpty(notFound().build());
     }
 
     /**
@@ -99,9 +106,11 @@ public class ReviewHandler {
 
         ReviewDetail reviewDetail = new ReviewDetail();
 
-        return
-                /*request.principal()
-                        .flatMap(p -> userRepository.findByUserName(p.getName()))*/
+        return ServerResponse.ok().build();
+
+        /*return
+         *//*request.principal()
+                        .flatMap(p -> userRepository.findByUserName(p.getName()))*//*
                 this.userRepository.findByUsername("test")
                         .map(user -> {
                             reviewDetail.setUser(user);
@@ -114,7 +123,7 @@ public class ReviewHandler {
                         })
                         .flatMap(review -> {
 
-                            return this.collectionRepository.findAllByCollectionId(review.getCollectionId())
+                            return this.collectionRepository.findAllByCollectionId(review.get())
                                     .collectList()
                                     .map(collections -> {
                                         reviewDetail.setCollection(collections);
@@ -125,7 +134,7 @@ public class ReviewHandler {
                             return reviewDetail;
                         })
                         .flatMap(result -> ok().body(BodyInserters.fromObject(reviewDetail)))
-                        .switchIfEmpty(notFound().build());
+                        .switchIfEmpty(notFound().build());*/
     }
 
     /**
@@ -152,21 +161,31 @@ public class ReviewHandler {
     public Mono<ServerResponse> post(ServerRequest request) {
         log.info("]-----] ReviewHandler::post call [-----[ ");
 
-        return request.body(BodyExtractors.toMultipartData())
-                .flatMap(map -> {
-                    Review review = new Review();
+        Review review = new Review();
 
+        return request
+                .body(BodyExtractors.toMultipartData())
+                .map(map -> {
                     Map<String, Part> parts = map.toSingleValueMap();
-
-                    Mono<User> userMono = this.userRepository.findByUsername(((FormFieldPart) parts.get("userName")).value());
 
                     review.setTitle(((FormFieldPart) parts.get("title")).value());
                     review.setContent(((FormFieldPart) parts.get("content")).value());
 
+                    //todo: tag배열 받아오기
+
+                    return map;
+                })
+                .flatMap(user -> request.principal().map(p -> p.getName()))
+                //.flatMap(user -> request.principal().map(p -> "ssong"))
+                .flatMap(user -> this.userRepository.findByUsername(user))
+                .flatMap(user -> {
+                    review.setUserId(user.getId());
+                    review.setUser(user);
                     return Mono.just(review);
                 })
-                .flatMap(review -> this.reviewRepository.save(review))
-                .flatMap((r) -> ServerResponse.created(URI.create("/review/" + r.getId())).build());
+                .flatMap(r -> this.reviewRepository.save(r))
+                .flatMap(r -> ok().body(BodyInserters.fromObject(r)))
+                .switchIfEmpty(notFound().build());
     }
 
     /**
