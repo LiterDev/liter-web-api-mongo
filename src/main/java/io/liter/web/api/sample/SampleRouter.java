@@ -1,5 +1,6 @@
 package io.liter.web.api.sample;
 
+import io.liter.web.api.ssong.SsongHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -14,13 +15,12 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 @Configuration
 public class SampleRouter {
 
-
     @Bean
     public RouterFunction<ServerResponse> sampleRouterFunction(SampleHandler handler) {
 
         return RouterFunctions
                 .nest(path("/sample"),
-                        route(GET("").and(accept(APPLICATION_JSON_UTF8)), handler::getAll)
+                        route(GET("").and(accept(MediaType.APPLICATION_JSON_UTF8)), handler::getAll)
                                 .andRoute(GET("/{id}").and(accept(MediaType.APPLICATION_JSON_UTF8)), handler::get)
                                 .andRoute(POST("/").and(accept(APPLICATION_JSON_UTF8)).and(contentType(APPLICATION_JSON_UTF8)), handler::post)
                                 .andRoute(PUT("/{id}").and(accept(APPLICATION_JSON_UTF8)), handler::put)

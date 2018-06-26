@@ -50,10 +50,14 @@ public class SampleHandler {
      * GET ALL
      */
     public Mono<ServerResponse> getAll(ServerRequest request) {
+        log.info("]-----] SampleHandler::getAll call [-----[ ");
 
+        return ServerResponse.ok().build();
+
+        /*
         Flux<Sample> sampleFlux = sampleRepository.findAll();
-
         return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(sampleFlux, Sample.class);
+        */
     }
 
     /**
@@ -82,7 +86,7 @@ public class SampleHandler {
                 .switchIfEmpty(notFound().build());
     }
 
-    @PreAuthorize("hasAuthority('SCOPE_ACCESS')")
+    //@PreAuthorize("hasAuthority('SCOPE_ACCESS')")
     public Mono<ServerResponse> get(ServerRequest request) {
         log.info("]-----] SampleHandler::get call [-----[ ");
         // parse path-variable

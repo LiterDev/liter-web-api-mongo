@@ -41,7 +41,7 @@ public class LookupTest {
                 lookupOperation,
                 Aggregation.match(Criteria.where("follower.userId").is("fajigGIiJKMwIxsu")),
                 Aggregation.skip(0),
-                Aggregation.limit(10)
+                Aggregation.limit(1)
         );
 
         List<Review> results = mongoTemplate

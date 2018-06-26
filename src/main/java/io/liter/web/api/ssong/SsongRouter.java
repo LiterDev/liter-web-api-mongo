@@ -14,7 +14,7 @@ public class SsongRouter {
 
 
     @Bean
-    public RouterFunction<ServerResponse> sampleRouterFunction(SsongHandler handler) {
+    public RouterFunction<ServerResponse> ssongRouterFunction(SsongHandler handler) {
 
         return RouterFunctions
                 .nest(path("/ssong"),

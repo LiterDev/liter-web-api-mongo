@@ -64,14 +64,13 @@ public class ReviewHandler {
         log.info("]-----] ReviewHandler::getMainList call [-----[ ");
 
         Integer page = request.queryParam("page").get().isEmpty() ? 0 : Integer.parseInt(request.queryParam("page").get());
-        Integer size = request.queryParam("size").get().isEmpty() ? 5 : Integer.parseInt(request.queryParam("size").get());
+        Integer size = request.queryParam("size").get().isEmpty() ? 10 : Integer.parseInt(request.queryParam("size").get());
 
         ReviewList reviewList = new ReviewList();
         Pagination pagination = new Pagination();
 
-        String userName = request.principal().map(p -> p.getName()).toString();
-
-        return this.userRepository.findByUsername("test1")
+        return request.principal()
+                .flatMap(p -> this.userRepository.findByUsername(p.getName()))
                 .flatMap(user -> {
                     LookupOperation lookupOperation = LookupOperation.newLookup()
                             .from("follower")
@@ -90,9 +89,15 @@ public class ReviewHandler {
                             .aggregate(aggregation, "review", Review.class)
                             .getMappedResults();
 
-                    log.debug("]-----] ReviewHandler::reviews [-----[ {}", reviews);
+                    pagination.setPage(page);
+                    pagination.setSize(size);
+                    //todo: page total 가져오기
 
-                    return ok().body(BodyInserters.fromObject(reviews));
+                    reviewList.setUser(user);
+                    reviewList.setReviewList(reviews);
+                    reviewList.setPagination(pagination);
+
+                    return ok().body(BodyInserters.fromObject(reviewList));
 
                 }).switchIfEmpty(notFound().build());
     }
