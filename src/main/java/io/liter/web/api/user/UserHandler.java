@@ -24,7 +24,6 @@ public class UserHandler {
 
     private final UserRepository userRepository;
     private final UserValidation userValidation;
-    private final UUIDGenerator uuidGenerator;
     private final AuthRepository authRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -34,7 +33,6 @@ public class UserHandler {
             UUIDGenerator uuidGenerator, AuthRepository authRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.userValidation = userValidation;
-        this.uuidGenerator = uuidGenerator;
         this.authRepository = authRepository;
         this.passwordEncoder = passwordEncoder;
     }
