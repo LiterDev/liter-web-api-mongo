@@ -29,8 +29,9 @@ public class UserHandler {
 
     public UserHandler(
             UserRepository userRepository
-            , UserValidation userValidation,
-            UUIDGenerator uuidGenerator, AuthRepository authRepository, PasswordEncoder passwordEncoder) {
+            , UserValidation userValidation
+            , AuthRepository authRepository
+            , PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.userValidation = userValidation;
         this.authRepository = authRepository;
@@ -68,7 +69,6 @@ public class UserHandler {
                             .switchIfEmpty(Mono.empty());
                 })
                 .flatMap(userSignUp -> ServerResponse.status(HttpStatus.CREATED).contentType(MediaType.APPLICATION_JSON_UTF8).body(fromObject(userSignUp)))
-                //.switchIfEmpty(badRequest().build());
                 .switchIfEmpty(badRequest().build());
     }
 
