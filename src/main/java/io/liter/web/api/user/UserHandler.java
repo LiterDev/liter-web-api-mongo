@@ -57,7 +57,6 @@ public class UserHandler {
                 .flatMap(userValidation::validateUserSignUp)
                 .flatMap(userSignUp -> {
                     User user = new User();
-                    user.setId(uuidGenerator.getUUID());
                     user.setUsername(userSignUp.getUsername());
                     return userRepository.save(user)
                             .flatMap(userSaved -> {
