@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.core.GrantedAuthority;
@@ -26,7 +27,7 @@ import static java.util.stream.Collectors.toList;
 public class Auth implements UserDetails {
 
     @Id
-    private String userId;
+    private ObjectId userId;
 
     private String username;
 

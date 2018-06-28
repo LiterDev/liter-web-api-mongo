@@ -7,6 +7,7 @@ import io.liter.web.api.review.view.ReviewDetail;
 import io.liter.web.api.review.view.ReviewList;
 import io.liter.web.api.user.UserRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.LookupOperation;
@@ -23,7 +24,6 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 import java.util.Map;
 
-import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.web.reactive.function.server.ServerResponse.*;
 
 @Slf4j
@@ -91,6 +91,7 @@ public class ReviewHandler {
 
                     pagination.setPage(page);
                     pagination.setSize(size);
+                    pagination.setTotal(305L);
                     //todo: page total 가져오기
 
                     reviewList.setUser(user);
@@ -99,7 +100,8 @@ public class ReviewHandler {
 
                     return ok().body(BodyInserters.fromObject(reviewList));
 
-                }).switchIfEmpty(notFound().build());
+                })
+                .switchIfEmpty(notFound().build());
     }
 
     /**
@@ -146,9 +148,8 @@ public class ReviewHandler {
      * GET a Review reward active
      */
     public Mono<ServerResponse> isActive(ServerRequest request) {
-        String id = request.pathVariable("id");
 
-        Mono<Review> reviewMono = reviewRepository.findById(id);
+        Mono<Review> reviewMono = reviewRepository.findById(new ObjectId(request.pathVariable("id")));
 
         return reviewMono
                 .flatMap(review -> {
@@ -214,7 +215,7 @@ public class ReviewHandler {
 
                             return r;
                         },
-                        this.reviewRepository.findById(request.pathVariable("id")),
+                        this.reviewRepository.findById(new ObjectId(request.pathVariable("id"))),
                         request.bodyToMono(Review.class)
                 )
                 .cast(Review.class)
@@ -228,7 +229,7 @@ public class ReviewHandler {
     public Mono<ServerResponse> delete(ServerRequest request) {
         log.info("]-----] ReviewHandler::delete call [-----[ ");
 
-        return this.reviewRepository.findById(request.pathVariable("id"))
+        return this.reviewRepository.findById(new ObjectId(request.pathVariable("id")))
                 .flatMap((post) -> noContent().build())
                 .switchIfEmpty(notFound().build());
     }

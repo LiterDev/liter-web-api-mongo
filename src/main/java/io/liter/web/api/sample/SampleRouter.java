@@ -1,6 +1,5 @@
 package io.liter.web.api.sample;
 
-import io.liter.web.api.ssong.SsongHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;

@@ -3,6 +3,7 @@ package io.liter.web.api.like;
 import io.liter.web.api.review.Review;
 import io.liter.web.api.review.ReviewRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.codec.multipart.FormFieldPart;
 import org.springframework.http.codec.multipart.Part;
@@ -35,7 +36,7 @@ public class LikeHandler {
     public Mono<ServerResponse> getById(ServerRequest request) {
 
         return this.likeRepository
-                .findById(Long.parseLong(request.pathVariable("id")))
+                .findById(new ObjectId(request.pathVariable("id")))
                 .flatMap((post) -> ok().body(BodyInserters.fromObject(post)))
                 .switchIfEmpty(notFound().build());
     }
@@ -55,7 +56,7 @@ public class LikeHandler {
     public Mono<ServerResponse> delete(ServerRequest request) {
         log.info("]-----] ReviewHandler::delete call [-----[ ");
 
-        return this.likeRepository.findById(Long.parseLong(request.pathVariable("id")))
+        return this.likeRepository.findById(new ObjectId(request.pathVariable("id")))
                 .flatMap((post) -> noContent().build())
                 .switchIfEmpty(notFound().build());
     }

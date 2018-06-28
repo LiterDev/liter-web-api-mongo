@@ -6,17 +6,16 @@ import io.liter.web.api.review.ReviewRepository;
 import io.liter.web.api.tag.ReviewTagRepository;
 import io.liter.web.api.user.UserRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.http.codec.multipart.FormFieldPart;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.BodyExtractors;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -66,7 +65,7 @@ public class SampleHandler {
     public Mono<ServerResponse> getById(ServerRequest request) {
         log.info("]-----] SampleHandler::get call [-----[ ");
         // parse path-variable
-        String id = request.pathVariable("id");
+        ObjectId id = new ObjectId(request.pathVariable("id"));
         log.debug("]-----] SampleHandler::get id [-----[ {}", id);
 
         Mono<Sample> sampleMono = sampleRepository.findById(id);
@@ -90,7 +89,7 @@ public class SampleHandler {
     public Mono<ServerResponse> get(ServerRequest request) {
         log.info("]-----] SampleHandler::get call [-----[ ");
         // parse path-variable
-        String id = request.pathVariable("id");
+        ObjectId id = new ObjectId(request.pathVariable("id"));
         log.debug("]-----] SampleHandler::get id [-----[ {}", id);
         Mono<Sample> sampleMono = sampleRepository.findById(id);
 
@@ -126,7 +125,7 @@ public class SampleHandler {
     public Mono<ServerResponse> put(ServerRequest request) {
         log.info("]-----] SampleHandler::put call [-----[ ");
 
-        String id = request.pathVariable("id");
+        ObjectId id = new ObjectId(request.pathVariable("id"));
 
         Mono<Sample> sampleMono = request.bodyToMono(Sample.class);
 
@@ -146,7 +145,7 @@ public class SampleHandler {
     public Mono<ServerResponse> delete(ServerRequest request) {
         log.info("]-----] SampleHandler::delete call [-----[ ");
 
-        String id = request.pathVariable("id");
+        ObjectId id = new ObjectId(request.pathVariable("id"));
 
         return ServerResponse.ok().build(sampleRepository.deleteById(id));
     }

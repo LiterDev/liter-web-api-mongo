@@ -19,6 +19,7 @@ public class SsongRouter {
         return RouterFunctions
                 .nest(path("/ssong"),
                         route(GET(""), handler::get)
+                                .andRoute(GET("/all"), handler::getall)
                                 .andRoute(POST("/tag"), handler::postTag)
                                 .andRoute(POST("/review"), handler::postReview)
                 );

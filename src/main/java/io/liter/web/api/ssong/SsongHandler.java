@@ -6,6 +6,7 @@ import io.liter.web.api.review.ReviewRepository;
 import io.liter.web.api.sample.Sample;
 import io.liter.web.api.tag.ReviewTag;
 import io.liter.web.api.tag.ReviewTagRepository;
+import io.liter.web.api.user.User;
 import io.liter.web.api.user.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,15 +31,31 @@ public class SsongHandler {
     private FollowerRepository followerRepository;
     @Autowired
     private ReviewTagRepository reviewTagRepository;
+    @Autowired
+    private SsongRepository ssongRepository;
+
 
     /**
      * ================================================================================================================
      */
 
     public Mono<ServerResponse> get(ServerRequest request) {
-        Flux<Review> reviewFlux = this.reviewRepository.findAll();
 
-        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(reviewFlux, Review.class);
+        Ssong ssong = new Ssong();
+
+        return this.userRepository.findAll().collectList()
+                .flatMap(user -> {
+
+                    ssong.setUser(user);
+
+                    return ServerResponse.ok().body(this.ssongRepository.save(ssong), Ssong.class);
+                })
+                .switchIfEmpty(notFound().build());
+    }
+
+    public Mono<ServerResponse> getall(ServerRequest request) {
+
+        return ServerResponse.ok().body(this.reviewRepository.findAll(),Review.class);
     }
 
     public Mono<ServerResponse> postTag(ServerRequest request) {
@@ -53,7 +70,7 @@ public class SsongHandler {
     public Mono<ServerResponse> postReview(ServerRequest request) {
         log.info("]-----] post [-----[ ");
 
-        Mono<Review> reviewMono = reviewRepository.findById("5b2c62d57af9476b1fb09385");
+        //Mono<Review> reviewMono = reviewRepository.findById("5b2c62d57af9476b1fb09385");
 
         return ServerResponse.ok().build();
     }
