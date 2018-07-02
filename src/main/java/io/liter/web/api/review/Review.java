@@ -41,7 +41,7 @@ public class Review extends BaseEntity {
 
     private Integer rewardActive; //리뷰보상여부
 
-    private List<ReviewTag> reviewTag;
+    private List<String> reviewTag;
 
     @DBRef
     private User user;

@@ -24,8 +24,6 @@ public class SsongHandler {
     @Autowired
     private FollowerRepository followerRepository;
     @Autowired
-    private ReviewTagRepository reviewTagRepository;
-    @Autowired
     private SsongRepository ssongRepository;
 
 
@@ -50,15 +48,6 @@ public class SsongHandler {
     public Mono<ServerResponse> getall(ServerRequest request) {
 
         return ServerResponse.ok().body(this.reviewRepository.findAll(),Review.class);
-    }
-
-    public Mono<ServerResponse> postTag(ServerRequest request) {
-        log.info("]-----] post [-----[ ");
-
-        return request.bodyToMono(ReviewTag.class)
-                .flatMap(t -> this.reviewTagRepository.save(t))
-                .flatMap(r -> ServerResponse.ok().body(Mono.just(r), ReviewTag.class))
-                .switchIfEmpty(notFound().build());
     }
 
     public Mono<ServerResponse> postReview(ServerRequest request) {

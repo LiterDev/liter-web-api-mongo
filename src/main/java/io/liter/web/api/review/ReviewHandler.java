@@ -95,7 +95,6 @@ public class ReviewHandler {
                     //todo: page total 가져오기
 
                     reviewList.setUser(user);
-                    reviewList.setReviewList(reviews);
                     reviewList.setPagination(pagination);
 
                     return ok().body(BodyInserters.fromObject(reviewList));

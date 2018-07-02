@@ -40,9 +40,6 @@ public class SampleHandler {
     private ReviewRepository reviewRepository;
     @Autowired
     private FollowerRepository followerRepository;
-    @Autowired
-    private ReviewTagRepository reviewTagRepository;
-
 
     /**
      * GET ALL
