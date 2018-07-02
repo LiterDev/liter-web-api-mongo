@@ -18,5 +18,5 @@ public class ReviewList implements Serializable {
 
     private User user;
 
-    private List<Review> reviewList;
+    private List<Review> review;
 }

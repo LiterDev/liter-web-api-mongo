@@ -3,7 +3,6 @@ package io.liter.web.api.sample;
 import io.liter.web.api.follower.FollowerRepository;
 import io.liter.web.api.review.ReviewContentType;
 import io.liter.web.api.review.ReviewRepository;
-import io.liter.web.api.tag.ReviewTagRepository;
 import io.liter.web.api.user.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;

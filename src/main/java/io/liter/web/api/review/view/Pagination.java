@@ -11,6 +11,8 @@ import java.io.Serializable;
 public class Pagination implements Serializable {
 
     private Integer page;
+
     private Integer size;
+
     private Long total;
 }

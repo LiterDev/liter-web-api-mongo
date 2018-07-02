@@ -1,8 +1,7 @@
 package io.liter.web.api.review;
 
-import io.liter.web.api.collection.Collection;
+import io.liter.web.api.collection.MediaCollection;
 import io.liter.web.api.common.model.BaseEntity;
-import io.liter.web.api.tag.ReviewTag;
 import io.liter.web.api.user.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -42,13 +41,12 @@ public class Review extends BaseEntity {
 
     private Integer rewardActive; //리뷰보상여부
 
+    private List<ReviewTag> reviewTag;
+
     @DBRef
     private User user;
 
     @DBRef
-    private ReviewTag reviewTag;
-
-    @DBRef
-    private List<Collection> collection;
+    private MediaCollection mediaCollection;
 
 }
