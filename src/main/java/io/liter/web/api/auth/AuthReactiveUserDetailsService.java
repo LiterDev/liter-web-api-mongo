@@ -16,7 +16,7 @@ public class AuthReactiveUserDetailsService implements ReactiveUserDetailsServic
 
     @Override
     public Mono<UserDetails> findByUsername(String username) {
-        log.info("]-----] CustomReactiveUserDetailsService::findByUsername call [-----[ ");
+        log.info("]-----] CustomReactiveUserDetailsService::findByUsername call [-----[ {}", username);
         return authRepository.findByUsername(username);
     }
 }
