@@ -13,7 +13,7 @@ public class CustomPasswordEncoderTest {
 
     @Test
     public void encode() {
-        CharSequence rawPassword = "jdev!@";
+        CharSequence rawPassword = "test";
         SecureRandom random = new SecureRandom();
         byte bytes[] = new byte[20];
         random.nextBytes(bytes);
@@ -28,6 +28,7 @@ public class CustomPasswordEncoderTest {
         //$2a$12$/GjBDmhjbuSd1t.uwXfq1ed0jrUSpSJ2j79R.J6IMCrmtMv1W9TX2
         //$2a$12$/x9/U.b8ah/G8hHqqWnmqu3avLqBYXABsgMB/Z1GtegkHh2YpbtVO
         //$2a$12$F32NKR33LT/xK7Z4e/9LqOsNK5cf6UnkUnEnkJytpmik01nIFdFVS
+        //$2a$12$8ALYXcbI90kLlgSBRF1Hw.y.mvDy2/PRCRGnjkz/sh7JklVkKkZQm
     }
 
     @Test
