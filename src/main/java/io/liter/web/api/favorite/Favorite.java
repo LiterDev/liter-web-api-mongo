@@ -20,8 +20,6 @@ public class Favorite extends BaseEntity {
     @Id
     private ObjectId id;
 
-    private ObjectId userId;
-
-    private List<ObjectId> favoriteId = new ArrayList<>();
+    private String name;
 
 }

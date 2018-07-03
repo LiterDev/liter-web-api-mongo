@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -18,5 +19,5 @@ public class ReviewList implements Serializable {
 
     private User user;
 
-    private List<Review> review;
+    private List<Review> review = new ArrayList<>();
 }

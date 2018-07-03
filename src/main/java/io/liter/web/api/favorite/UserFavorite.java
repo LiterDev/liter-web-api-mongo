@@ -22,7 +22,8 @@ public class UserFavorite extends BaseEntity {
 
     private ObjectId userId;
 
-    @DBRef
+    private long favoriteCount;
+
     private List<Favorite> Favorite;
 
 }

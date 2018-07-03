@@ -22,5 +22,7 @@ public class Follower extends BaseEntity {
 
     private ObjectId userId;
 
+    private long followerCount;
+
     private List<ObjectId> followerId = new ArrayList<>();
 }

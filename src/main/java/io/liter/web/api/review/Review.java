@@ -12,6 +12,7 @@ import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -41,7 +42,7 @@ public class Review extends BaseEntity {
 
     private Integer rewardActive; //리뷰보상여부
 
-    private List<String> reviewTag;
+    private List<String> reviewTag = new ArrayList<>();
 
     @DBRef
     private User user;

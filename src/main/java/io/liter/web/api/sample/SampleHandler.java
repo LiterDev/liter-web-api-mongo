@@ -134,7 +134,6 @@ public class SampleHandler {
                 .switchIfEmpty(badRequest().build());
     }
 
-
     /**
      * DELETE a Object
      */

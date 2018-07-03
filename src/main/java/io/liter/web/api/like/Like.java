@@ -22,6 +22,8 @@ public class Like extends BaseEntity {
 
     private ObjectId reviewId;
 
+    private long likeCount;
+
     private List<ObjectId> likeId = new ArrayList<>();
 
 }

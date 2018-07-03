@@ -1,5 +1,6 @@
 package io.liter.web.api.sample;
 
+import org.bson.types.ObjectId;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -27,6 +28,7 @@ import static org.junit.Assert.assertThat;
 public class SampleHandlerTest {
 
     private static Logger log = LoggerFactory.getLogger(SampleHandlerTest.class);
+
     @Autowired
     private WebTestClient webTestClient;
 
@@ -64,7 +66,7 @@ public class SampleHandlerTest {
 
     @Test
     public void postTest() {
-        Sample sample = new Sample("test06", "john06", BigDecimal.TEN, 6L);
+        Sample sample = new Sample(new ObjectId("test06"), "john06", BigDecimal.TEN, 6L);
 
         EntityExchangeResult<Sample> result = webTestClient.post()
                 .uri("/sample")
@@ -87,7 +89,7 @@ public class SampleHandlerTest {
 
     @Test
     public void putTest() {
-        Sample sample = new Sample("test01", "john11", BigDecimal.TEN, 1L);
+        Sample sample = new Sample(new ObjectId("test01"), "john11", BigDecimal.TEN, 1L);
 
         EntityExchangeResult<Sample> result = webTestClient.put()
                 .uri("/sample/{id}", Collections.singletonMap("id", "test01"))
@@ -107,6 +109,5 @@ public class SampleHandlerTest {
 
         log.debug("]-----] result.title [-----[ {}", result.getResponseBody().getTitle());
         assertThat(result.getResponseBody().getTitle(), is(equals("john11")));
-
     }
 }

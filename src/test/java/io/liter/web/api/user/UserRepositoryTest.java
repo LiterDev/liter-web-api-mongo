@@ -1,6 +1,7 @@
 package io.liter.web.api.user;
 
 import io.liter.web.api.sample.Sample;
+import org.bson.types.ObjectId;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,7 +36,7 @@ public class UserRepositoryTest {
         Flux<User> deleteAndInsert = userRepository.deleteAll()
                 .thenMany(userRepository.saveAll(
                         Flux.just(
-                                new User("test01", "john01", 1, "test", "test", "m", 19, 0)
+                                new User(new ObjectId("test01"), "john01", 1, "test", "test", "m", 19, 0)
 
                         )
                 ));

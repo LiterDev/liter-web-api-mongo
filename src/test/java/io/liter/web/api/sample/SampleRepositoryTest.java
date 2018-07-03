@@ -1,5 +1,6 @@
 package io.liter.web.api.sample;
 
+import org.bson.types.ObjectId;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,11 +35,11 @@ public class SampleRepositoryTest {
         Flux<Sample> deleteAndInsert = sampleRepository.deleteAll()
                 .thenMany(sampleRepository.saveAll(
                         Flux.just(
-                                new Sample("test01", "john01", BigDecimal.TEN, 1L),
-                                new Sample("test02", "john02", BigDecimal.TEN, 2L),
-                                new Sample("test03", "john03", BigDecimal.TEN, 3L),
-                                new Sample("test04", "john04", BigDecimal.TEN, 4L),
-                                new Sample("test05", "john05", BigDecimal.TEN, 5L)
+                                new Sample(new ObjectId("test01"), "john01", BigDecimal.TEN, 1L),
+                                new Sample(new ObjectId("test02"), "john02", BigDecimal.TEN, 2L),
+                                new Sample(new ObjectId("test03"), "john03", BigDecimal.TEN, 3L),
+                                new Sample(new ObjectId("test04"), "john04", BigDecimal.TEN, 4L),
+                                new Sample(new ObjectId("test05"), "john05", BigDecimal.TEN, 5L)
                         )
                 ));
 
@@ -60,7 +61,7 @@ public class SampleRepositoryTest {
 
     @Test
     public void saveTest() {
-        Mono<Sample> sampleMono = sampleRepository.save(new Sample("test01", "john01", BigDecimal.TEN, 10L));
+        Mono<Sample> sampleMono = sampleRepository.save(new Sample(new ObjectId("test01"), "john01", BigDecimal.TEN, 10L));
 
         StepVerifier
                 .create(sampleMono)
@@ -76,7 +77,7 @@ public class SampleRepositoryTest {
     @Test
     public void findByIdTest() {
 
-        Mono<Sample> sampleMono = sampleRepository.findById("test01");
+        Mono<Sample> sampleMono = sampleRepository.findById(new ObjectId("test01"));
 
         StepVerifier
                 .create(sampleMono)

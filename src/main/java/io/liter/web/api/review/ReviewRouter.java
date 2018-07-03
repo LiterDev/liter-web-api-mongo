@@ -18,7 +18,7 @@ public class ReviewRouter {
     public RouterFunction<ServerResponse> routerFunction(ReviewHandler handler) {
         return RouterFunctions
                 .nest(path("/review"),
-                        route(GET("").and(accept(MediaType.APPLICATION_JSON_UTF8)), handler::findAllByUserId)
+                        route(GET("").and(accept(MediaType.APPLICATION_JSON_UTF8)), handler::findByUserIdIn)
                                 .andRoute(GET("/{id}").and(accept(MediaType.APPLICATION_JSON_UTF8)), handler::findById)
                                 .andRoute(GET("/active/{id}").and(accept(MediaType.APPLICATION_JSON_UTF8)), handler::isActive)
                                 .andRoute(POST(""), handler::post)
