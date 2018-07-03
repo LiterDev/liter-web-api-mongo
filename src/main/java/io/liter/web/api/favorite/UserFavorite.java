@@ -6,9 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -24,6 +24,6 @@ public class UserFavorite extends BaseEntity {
 
     private long favoriteCount;
 
-    private List<Favorite> Favorite;
+    private List<ObjectId> Favorite = new ArrayList<>();
 
 }
