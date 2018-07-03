@@ -88,14 +88,14 @@ public class SsongHandlerTest {
     @Test
     public void ssongReviewGet2() throws Exception {
         IntStream.range(0, 1).parallel().forEach(index -> {
-            long startTime = System.nanoTime();
+            //long startTime = System.nanoTime();
 
-            this.review4();
+            this.review3();
 
-            long endTime = System.nanoTime();
+            /*long endTime = System.nanoTime();
             long duration = (endTime - startTime);
 
-            log.debug("]-----]duration[-----[{}", duration);
+            log.debug("]-----]duration[-----[{}", duration);*/
         });
     }
 
@@ -112,44 +112,13 @@ public class SsongHandlerTest {
                 })
                 .flatMap(user -> this.followerRepository.findByUserId(user.getId()))
                 .flatMap(follower ->
-                        this.reviewRepository.findByUserIdIn(follower.getFollowerId(), PageRequest.of(0, 1000))
+                        this.reviewRepository.findByUserIdIn(follower.getFollowerId(), PageRequest.of(0, 100))
                                 .collectList()
                                 .map(collections -> {
                                     reviewList.setReview(collections);
                                     return follower;
                                 }))
                 .flatMap(follower -> this.reviewRepository.countByUserIdIn(follower.getFollowerId()))
-                .flatMap(count -> {
-                    log.debug("]-----] count [-----[ {}", count);
-                    pagination.setTotal(count);
-                    pagination.setPage(0);
-                    pagination.setSize(100);
-
-                    reviewList.setPagination(pagination);
-
-                    return Mono.just(reviewList);
-                })
-                .thenReturn(reviewList);
-
-        StepVerifier
-                .create(reviewListMono)
-                .expectNextCount(1)
-                .verifyComplete();
-    }
-
-    public void review4() {
-
-        ReviewList reviewList = new ReviewList();
-        Pagination pagination = new Pagination();
-
-        Mono<ReviewList> reviewListMono =
-                        this.reviewRepository.findByUserId(new ObjectId("5b334a58c650c220d62ce68a"), PageRequest.of(0, 1000))
-                                .collectList()
-                                .map(collections -> {
-                                    reviewList.setReview(collections);
-                                    return reviewList;
-                                })
-                .flatMap(follower -> this.reviewRepository.countByUserId(new ObjectId("5b334a58c650c220d62ce68a")))
                 .flatMap(count -> {
                     log.debug("]-----] count [-----[ {}", count);
                     pagination.setTotal(count);

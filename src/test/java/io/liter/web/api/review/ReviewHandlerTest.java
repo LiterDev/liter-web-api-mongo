@@ -50,7 +50,7 @@ public class ReviewHandlerTest {
 
     @Test
     public void test() {
-        IntStream.range(0, 10000).parallel().forEach(index -> {
+        IntStream.range(0, 1).parallel().forEach(index -> {
             System.out.println("1");
         });
     }
@@ -59,7 +59,6 @@ public class ReviewHandlerTest {
     @Test
     public void review2() throws Exception{
         IntStream.range(0, 300000).parallel().forEach(index -> {
-            log.debug("]-----]parallel[-----[");
 
             webTestClient.get().uri("/ssong/review")
                     .accept(MediaType.APPLICATION_JSON_UTF8)
