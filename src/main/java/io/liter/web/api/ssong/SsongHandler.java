@@ -48,7 +48,6 @@ public class SsongHandler {
         Integer page = 0;
         Integer size = 100;
 
-
         return  this.userRepository.findByUsername("test002")
                 .map(user -> {
                     reviewList.setUser(user);
@@ -100,6 +99,7 @@ public class SsongHandler {
                     return ServerResponse.ok().body(this.reviewRepository.save(review), Review.class);
                 })
                 .switchIfEmpty(notFound().build());
+
     }
 
     /**
@@ -153,42 +153,5 @@ public class SsongHandler {
                 .flatMap(r -> this.reviewRepository.save(r))
                 .flatMap(r -> ServerResponse.ok().body(BodyInserters.fromObject(r)))
                 .switchIfEmpty(notFound().build());
-    }
-
-    public Mono<ReviewList> review22() {
-        log.info("]-----] review22 [-----[ ");
-
-        ReviewList reviewList = new ReviewList();
-        Pagination pagination = new Pagination();
-
-        Integer page = 0;
-        Integer size = 100;
-
-        Mono<ReviewList> reviewListMono =  this.userRepository.findByUsername("test002")
-                .map(user -> {
-                    reviewList.setUser(user);
-                    return user;
-                })
-                .flatMap(user -> this.followerRepository.findByUserId(user.getId()))
-                .flatMap(follower ->
-                        this.reviewRepository.findByUserIdIn(follower.getFollowerId(), PageRequest.of(page, size))
-                                .collectList()
-                                .map(collections -> {
-                                    reviewList.setReview(collections);
-                                    return follower;
-                                }))
-                .flatMap(follower -> this.reviewRepository.countByUserIdIn(follower.getFollowerId()))
-                .map(count -> {
-                    pagination.setTotal(count);
-                    pagination.setPage(page);
-                    pagination.setSize(size);
-
-                    reviewList.setPagination(pagination);
-
-                    return reviewList;
-                });
-
-        return reviewListMono;
-
     }
 }
