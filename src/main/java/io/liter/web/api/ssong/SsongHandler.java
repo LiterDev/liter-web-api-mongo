@@ -87,7 +87,19 @@ public class SsongHandler {
     public Mono<ServerResponse> postReview(ServerRequest request) {
         log.info("]-----] post [-----[ ");
 
-        return ServerResponse.ok().build();
+        return this.userRepository.findByUsername("test001")
+                .flatMap(user -> {
+
+                    Review review = new Review();
+                    review.setUserId(user.getId());
+                    review.setUser(user);
+
+                    review.setTitle(user.getUsername());
+                    review.setContent(user.getUsername());
+
+                    return ServerResponse.ok().body(this.reviewRepository.save(review), Review.class);
+                })
+                .switchIfEmpty(notFound().build());
     }
 
     /**
