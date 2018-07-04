@@ -36,8 +36,11 @@ import static org.springframework.web.reactive.function.server.ServerResponse.*;
 @Component
 public class ReviewHandler {
 
-    //todo:getAll -> findAllByUserId
-    //todo:post -> post
+    //todo:getAll -> findAllByUserId    OK~
+    //todo:getId -> findByUserId
+    //todo:post -> post                 OK~
+    //todo:delete -> delete
+    //todo::getIsActive -> isActive
 
     private final MongoTemplate mongoTemplate;
 

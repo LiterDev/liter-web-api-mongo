@@ -20,7 +20,9 @@ public class SsongRouter {
                 .nest(path("/ssong"),
                         route(GET(""), handler::get)
                                 .andRoute(GET("/all"), handler::getall)
-                                .andRoute(GET("/review"), handler::postReview)
+                                .andRoute(GET("/review"), handler::testSaveReview)
+                                .andRoute(POST("/formdata"), handler::formdata)
+
                 );
     }
 }

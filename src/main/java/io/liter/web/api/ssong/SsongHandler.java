@@ -20,11 +20,14 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.springframework.web.reactive.function.server.ServerResponse.notFound;
+import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
 @Slf4j
 @Component
@@ -83,7 +86,7 @@ public class SsongHandler {
                 .switchIfEmpty(notFound().build());
     }
 
-    public Mono<ServerResponse> postReview(ServerRequest request) {
+    public Mono<ServerResponse> testSaveReview(ServerRequest request) {
         log.info("]-----] post [-----[ ");
 
         return this.userRepository.findByUsername("test001")
@@ -98,6 +101,39 @@ public class SsongHandler {
 
                     return ServerResponse.ok().body(this.reviewRepository.save(review), Review.class);
                 })
+                .switchIfEmpty(notFound().build());
+
+    }
+
+    public Mono<ServerResponse> formdata(ServerRequest request){
+
+        Review review = new Review();
+
+        return request.principal()
+                .map(p -> p.getName())
+                .flatMap(user -> this.userRepository.findByUsername(user))
+                .map(user -> {
+                    review.setUserId(user.getId());
+                    review.setUser(user);
+
+                    return user;
+                })
+                .flatMap(user -> request.body(BodyExtractors.toMultipartData())
+                        .map(map -> {
+                            Map<String, Part> parts = map.toSingleValueMap();
+
+                            review.setTitle(((FormFieldPart) parts.get("title")).value());
+                            review.setContent(((FormFieldPart) parts.get("content")).value());
+
+                            List<String> arrayList = new ArrayList<String>(parts.keySet());
+
+                            log.debug("]-----] tag [-----[ {}");
+
+                            //todo: tag배열 받아오기
+
+                            return ServerResponse.ok().build();
+                        }))
+                .flatMap(r -> ServerResponse.ok().build())
                 .switchIfEmpty(notFound().build());
 
     }

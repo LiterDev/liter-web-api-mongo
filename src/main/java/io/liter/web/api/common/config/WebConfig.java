@@ -34,6 +34,8 @@ public class WebConfig implements WebFluxConfigurer {
 
     @Bean
     public CorsWebFilter corsFilter() {
+        log.info("]-----] corsFilter [-----[");
+
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowCredentials(true);

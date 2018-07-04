@@ -58,7 +58,7 @@ public class ReviewHandlerTest {
     //POST
     @Test
     public void review2() throws Exception{
-        IntStream.range(0, 300000).parallel().forEach(index -> {
+        IntStream.range(0, 1).parallel().forEach(index -> {
 
             webTestClient.get().uri("/ssong/review")
                     .accept(MediaType.APPLICATION_JSON_UTF8)

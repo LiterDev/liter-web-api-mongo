@@ -4,6 +4,7 @@ import io.liter.web.api.auth.jwt.JwtAuthenticationConverter;
 import io.liter.web.api.auth.jwt.JwtAuthenticationWebFilter;
 import io.liter.web.api.auth.jwt.JwtReactiveAuthenticationManager;
 import io.liter.web.api.auth.jwt.UnauthorizedAuthenticationEntryPoint;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -18,6 +19,7 @@ import org.springframework.security.web.server.context.WebSessionServerSecurityC
 
 import java.security.SecureRandom;
 
+@Slf4j
 @Configuration
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
@@ -38,7 +40,7 @@ public class SecurityConfig {
             UnauthorizedAuthenticationEntryPoint entryPoint
 
     ) {
-
+        log.info("]-----] springSecurityFilterChain [-----[");
 
         return http.csrf().disable()
                 .formLogin().disable()
@@ -59,6 +61,8 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
+        log.info("]-----] passwordEncoder [-----[");
+
         SecureRandom random = new SecureRandom();
         byte bytes[] = new byte[20];
         random.nextBytes(bytes);
