@@ -13,6 +13,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.codec.multipart.FormFieldPart;
 import org.springframework.http.codec.multipart.Part;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.BodyExtractors;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -28,9 +29,9 @@ import static org.springframework.web.reactive.function.server.ServerResponse.*;
 @Component
 public class ReviewHandler {
 
-    //todo:getAll -> findAllByUserId    OK~
-    //todo:getId -> findByUserId
-    //todo:post -> post                 OK~(tag 추가)
+    //todo:getAll -> findAllByUserId    OK!
+    //todo:getId -> findByReviewId      OK!
+    //todo:post -> post                 ING~(tag 추가)
     //todo:delete -> delete
     //todo::getIsActive -> isActive
 
@@ -103,8 +104,47 @@ public class ReviewHandler {
     }
 
     /**
+     * GET a Review by ReviewId
+     */
+    public Mono<ServerResponse> findByReviewId(ServerRequest request) {
+
+        ReviewDetail reviewDetail = new ReviewDetail();
+
+        ObjectId reviewId = new ObjectId(request.pathVariable("id"));
+
+        Mono<ServerResponse> responseNoLogin =
+                ServerResponse.ok().body(this.reviewRepository.findById(reviewId),Review.class)
+                        .switchIfEmpty(notFound().build());
+
+        return request.principal()
+                .map(p -> p.getName())
+                .flatMap(user -> this.userRepository.findByUsername(user))
+                .map(user -> {
+                    reviewDetail.setUser(user);
+
+                    return user;
+                })
+                .flatMap(user -> this.likeRepository.countByReviewIdAndLikeId(reviewId, user.getId()))
+                .map(likeCount -> {
+                    int likeActive = likeCount > 0 ? 1 : 0 ;
+                    reviewDetail.setUserLikeActive(likeActive);
+
+                    return likeCount;
+                })
+                .flatMap(r -> this.reviewRepository.findById(reviewId))
+                .map(review -> {
+                    reviewDetail.setReview(review);
+
+                    return reviewDetail;
+                })
+                .flatMap(r -> ServerResponse.ok().body(BodyInserters.fromObject(r)))
+                .switchIfEmpty(responseNoLogin);
+    }
+
+    /**
      * POST a Review
      */
+    @PreAuthorize("hasAuthority('SCOPE_ACCESS')")
     public Mono<ServerResponse> post(ServerRequest request) {
         log.info("]-----] ReviewHandler::post call [-----[ ");
 
@@ -143,41 +183,6 @@ public class ReviewHandler {
     }
 
     /**
-     * GET a Review by ReviewId
-     */
-    public Mono<ServerResponse> findById(ServerRequest request) {
-
-        ReviewDetail reviewDetail = new ReviewDetail();
-
-        ObjectId reviewId = new ObjectId(request.pathVariable("id"));
-
-        return request.principal()
-                .map(p -> p.getName())
-                .flatMap(user -> this.userRepository.findByUsername(user))
-                .map(user -> {
-                    reviewDetail.setUser(user);
-                    return user;
-                })
-                .flatMap(user -> this.likeRepository.countByReviewIdAndLikeId(reviewId, user.getId()))
-                .map(likeCount -> {
-
-                    int likeActive = likeCount > 0 ? 1 : 0 ;
-                    reviewDetail.setUserLikeActive(likeActive);
-
-                    return likeCount;
-                })
-                .flatMap(r -> this.reviewRepository.findById(reviewId))
-                .map(review -> {
-                    reviewDetail.setReview(review);
-
-                    return reviewDetail;
-                })
-                .flatMap(r -> ServerResponse.ok().body(BodyInserters.fromObject(r)))
-                //로그인 안했을 때
-                .switchIfEmpty(notFound().build());
-    }
-
-    /**
      * GET a Review reward active
      */
     public Mono<ServerResponse> isActive(ServerRequest request) {
@@ -197,6 +202,7 @@ public class ReviewHandler {
     /**
      * PUT a Object
      */
+    @PreAuthorize("hasAuthority('SCOPE_ACCESS')")
     public Mono<ServerResponse> put(ServerRequest request) {
         log.info("]-----] ReviewHandler::put call [-----[ ");
 
@@ -226,6 +232,7 @@ public class ReviewHandler {
     /**
      * DELETE a Object
      */
+    @PreAuthorize("hasAuthority('SCOPE_ACCESS')")
     public Mono<ServerResponse> delete(ServerRequest request) {
         log.info("]-----] ReviewHandler::delete call [-----[ ");
 

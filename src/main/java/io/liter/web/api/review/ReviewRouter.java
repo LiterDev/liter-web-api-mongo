@@ -19,7 +19,7 @@ public class ReviewRouter {
         return RouterFunctions
                 .nest(path("/review"),
                         route(GET("").and(accept(MediaType.APPLICATION_JSON_UTF8)), handler::findByUserIdIn)
-                                .andRoute(GET("/{id}").and(accept(MediaType.APPLICATION_JSON_UTF8)), handler::findById)
+                                .andRoute(GET("/{id}").and(accept(MediaType.APPLICATION_JSON_UTF8)), handler::findByReviewId)
                                 .andRoute(POST(""), handler::post)
                                 .andRoute(PUT("/{id}").and(accept(APPLICATION_JSON_UTF8)), handler::put)
                                 .andRoute(DELETE("/{id}"), handler::delete)
