@@ -1,6 +1,6 @@
 package io.liter.web.api.review;
 
-import io.liter.web.api.collection.CollectionRepository;
+import io.liter.web.api.collection.MediaCollectionRepository;
 import io.liter.web.api.follower.FollowerRepository;
 import io.liter.web.api.review.view.Pagination;
 import io.liter.web.api.review.view.ReviewDetail;
@@ -10,25 +10,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.aggregation.Aggregation;
-import org.springframework.data.mongodb.core.aggregation.LookupOperation;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.http.codec.multipart.FormFieldPart;
 import org.springframework.http.codec.multipart.Part;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.BodyExtractors;
-import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static org.springframework.web.reactive.function.server.ServerResponse.*;
 
@@ -48,7 +39,7 @@ public class ReviewHandler {
 
     private final ReviewRepository reviewRepository;
 
-    private final CollectionRepository collectionRepository;
+    private final MediaCollectionRepository mediaCollectionRepository;
 
     private final FollowerRepository followerRepository;
 
@@ -56,12 +47,12 @@ public class ReviewHandler {
             MongoTemplate mongoTemplate
             , UserRepository userRepository
             , ReviewRepository reviewRepository
-            , CollectionRepository collectionRepository
+            , MediaCollectionRepository mediaCollectionRepository
             , FollowerRepository followerRepository) {
         this.mongoTemplate = mongoTemplate;
         this.userRepository = userRepository;
         this.reviewRepository = reviewRepository;
-        this.collectionRepository = collectionRepository;
+        this.mediaCollectionRepository = mediaCollectionRepository;
         this.followerRepository = followerRepository;
     }
 
