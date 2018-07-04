@@ -1,6 +1,8 @@
 package io.liter.web.api.ssong;
 
 import io.liter.web.api.follower.FollowerRepository;
+import io.liter.web.api.like.Like;
+import io.liter.web.api.like.LikeRepository;
 import io.liter.web.api.review.Review;
 import io.liter.web.api.review.ReviewContentType;
 import io.liter.web.api.review.ReviewRepository;
@@ -41,6 +43,8 @@ public class SsongHandler {
     private FollowerRepository followerRepository;
     @Autowired
     private SsongRepository ssongRepository;
+    @Autowired
+    private LikeRepository likeRepository;
 
     public Mono<ServerResponse> get(ServerRequest request) {
         log.info("]-----]SsongHandler :: GET[-----[");
@@ -109,33 +113,40 @@ public class SsongHandler {
 
         Review review = new Review();
 
-        return request.principal()
-                .map(p -> p.getName())
-                .flatMap(user -> this.userRepository.findByUsername(user))
-                .map(user -> {
-                    review.setUserId(user.getId());
-                    review.setUser(user);
-
-                    return user;
-                })
-                .flatMap(user -> request.body(BodyExtractors.toMultipartData())
+        return request.body(BodyExtractors.toMultipartData())
                         .map(map -> {
                             Map<String, Part> parts = map.toSingleValueMap();
 
                             review.setTitle(((FormFieldPart) parts.get("title")).value());
                             review.setContent(((FormFieldPart) parts.get("content")).value());
 
-                            List<String> arrayList = new ArrayList<String>(parts.keySet());
-
-                            log.debug("]-----] tag [-----[ {}");
-
                             //todo: tag배열 받아오기
 
                             return ServerResponse.ok().build();
-                        }))
+                        })
                 .flatMap(r -> ServerResponse.ok().build())
                 .switchIfEmpty(notFound().build());
 
+    }
+
+    public Mono<ServerResponse> postLike(ServerRequest request){
+
+        Like like = new Like();
+
+        ObjectId reviewId = new ObjectId(request.pathVariable("id"));
+
+        return this.userRepository.findByUsername("test001")
+                .flatMap(user -> {
+                    List<ObjectId> likeId = new ArrayList<>();
+                    likeId.add(user.getId());
+
+                    like.setLikeId(likeId);
+
+                    like.setReviewId(reviewId);
+
+                    return ServerResponse.ok().body(this.likeRepository.save(like), Like.class);
+                })
+                .switchIfEmpty(notFound().build());
     }
 
     /**

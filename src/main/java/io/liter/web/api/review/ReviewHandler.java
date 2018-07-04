@@ -2,6 +2,7 @@ package io.liter.web.api.review;
 
 import io.liter.web.api.collection.MediaCollectionRepository;
 import io.liter.web.api.follower.FollowerRepository;
+import io.liter.web.api.like.LikeRepository;
 import io.liter.web.api.review.view.Pagination;
 import io.liter.web.api.review.view.ReviewDetail;
 import io.liter.web.api.review.view.ReviewList;
@@ -29,7 +30,7 @@ public class ReviewHandler {
 
     //todo:getAll -> findAllByUserId    OK~
     //todo:getId -> findByUserId
-    //todo:post -> post                 OK~
+    //todo:post -> post                 OK~(tag 추가)
     //todo:delete -> delete
     //todo::getIsActive -> isActive
 
@@ -43,17 +44,22 @@ public class ReviewHandler {
 
     private final FollowerRepository followerRepository;
 
+    private final LikeRepository likeRepository;
+
     public ReviewHandler(
             MongoTemplate mongoTemplate
             , UserRepository userRepository
             , ReviewRepository reviewRepository
             , MediaCollectionRepository mediaCollectionRepository
-            , FollowerRepository followerRepository) {
+            , FollowerRepository followerRepository
+            , LikeRepository likeRepository
+    ) {
         this.mongoTemplate = mongoTemplate;
         this.userRepository = userRepository;
         this.reviewRepository = reviewRepository;
         this.mediaCollectionRepository = mediaCollectionRepository;
         this.followerRepository = followerRepository;
+        this.likeRepository = likeRepository;
     }
 
     /**
@@ -141,39 +147,34 @@ public class ReviewHandler {
      */
     public Mono<ServerResponse> findById(ServerRequest request) {
 
-        String reviewId = request.pathVariable("id");
-
         ReviewDetail reviewDetail = new ReviewDetail();
 
-        return ServerResponse.ok().build();
+        ObjectId reviewId = new ObjectId(request.pathVariable("id"));
 
-        /*return
-         *//*request.principal()
-                        .flatMap(p -> userRepository.findByUserName(p.getName()))*//*
-                this.userRepository.findByUsername("test")
-                        .map(user -> {
-                            reviewDetail.setUser(user);
-                            return user;
-                        })
-                        .flatMap(r -> this.reviewRepository.findById(reviewId))
-                        .map(review -> {
-                            reviewDetail.setReview(review);
-                            return review;
-                        })
-                        .flatMap(review -> {
+        return request.principal()
+                .map(p -> p.getName())
+                .flatMap(user -> this.userRepository.findByUsername(user))
+                .map(user -> {
+                    reviewDetail.setUser(user);
+                    return user;
+                })
+                .flatMap(user -> this.likeRepository.countByReviewIdAndLikeId(reviewId, user.getId()))
+                .map(likeCount -> {
 
-                            return this.collectionRepository.findAllByCollectionId(review.get())
-                                    .collectList()
-                                    .map(collections -> {
-                                        reviewDetail.setCollection(collections);
-                                        return review;
-                                    });
-                        })
-                        .map(review -> {
-                            return reviewDetail;
-                        })
-                        .flatMap(result -> ok().body(BodyInserters.fromObject(reviewDetail)))
-                        .switchIfEmpty(notFound().build());*/
+                    int likeActive = likeCount > 0 ? 1 : 0 ;
+                    reviewDetail.setUserLikeActive(likeActive);
+
+                    return likeCount;
+                })
+                .flatMap(r -> this.reviewRepository.findById(reviewId))
+                .map(review -> {
+                    reviewDetail.setReview(review);
+
+                    return reviewDetail;
+                })
+                .flatMap(r -> ServerResponse.ok().body(BodyInserters.fromObject(r)))
+                //로그인 안했을 때
+                .switchIfEmpty(notFound().build());
     }
 
     /**

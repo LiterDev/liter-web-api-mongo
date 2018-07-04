@@ -6,14 +6,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReviewDetail implements Serializable {
+public class ReviewDetail {
 
     private User user;
+
+    private int userLikeActive;
 
     private Review review;
 }
