@@ -39,7 +39,7 @@ public class UserHandlerTest {
 
     @Test
     public void signUp() {
-        UserSignUp userSign = new UserSignUp("test001", "test1234!T", "test1234!T");
+        UserSignUp userSign = new UserSignUp("test002", "test1234!T", "test1234!T");
 
         EntityExchangeResult<Sample> result = webTestClient.post()
                 .uri("/user/signUp")
