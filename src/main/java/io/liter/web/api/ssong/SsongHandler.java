@@ -22,10 +22,7 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.springframework.web.reactive.function.server.ServerResponse.notFound;
@@ -154,9 +151,9 @@ public class SsongHandler {
      */
 
     /**
-     * POST a ReviewHandler Post Sample
+     * POST a form data Post Sample
      */
-    public Mono<ServerResponse> reviewPostSample(ServerRequest request) {
+    public Mono<ServerResponse> test_formdata(ServerRequest request) {
         log.info("]-----] ReviewHandler::post call [-----[ ");
 
         /*
@@ -199,6 +196,38 @@ public class SsongHandler {
                 })
                 .flatMap(r -> this.reviewRepository.save(r))
                 .flatMap(r -> ServerResponse.ok().body(BodyInserters.fromObject(r)))
+                .switchIfEmpty(notFound().build());
+    }
+
+    /**
+     * PUT a json Sample
+     */
+    public Mono<ServerResponse> test_put(ServerRequest request) {
+        log.info("]-----] ReviewHandler::put call [-----[ ");
+
+        ObjectId reviewId = new ObjectId(request.pathVariable("id"));
+
+        return request.principal()
+                .map(p -> p.getName())
+                .flatMap(user -> this.userRepository.findByUsername(user))
+                .map(user -> this.reviewRepository.findById(reviewId)
+                        .filter(review -> Objects.equals(review.getUserId(), user.getId()))
+                        .filter(review -> Objects.equals(review.getRewardActive(), 0)))         //0:보상 안받음
+                .flatMap(review -> Mono
+                        .zip(
+                                (data) -> {
+                                    Review original = (Review) data[0];
+                                    Review modified = (Review) data[1];
+
+                                    original.setTitle(modified.getTitle().isEmpty() ? original.getTitle() : modified.getTitle());
+                                    original.setContent(modified.getContent().isEmpty() ? original.getContent() : modified.getContent());
+
+                                    return original;
+                                }
+                                , review
+                                , request.bodyToMono(Review.class)
+                        ).cast(Review.class))
+                .flatMap(review -> ok().body(this.reviewRepository.save(review),Review.class))
                 .switchIfEmpty(notFound().build());
     }
 }

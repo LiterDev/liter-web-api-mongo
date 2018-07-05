@@ -55,7 +55,5 @@ public class UserHandlerTest {
         log.debug("]-----] result [-----[ {}", result);
         log.debug("]-----] result.getResponseBody [-----[ {}", result.getResponseBody());
         assertThat(result.getResponseBody(), is(notNullValue()));
-
     }
-
 }

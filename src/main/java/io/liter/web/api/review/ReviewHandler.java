@@ -6,6 +6,7 @@ import io.liter.web.api.like.LikeRepository;
 import io.liter.web.api.review.view.Pagination;
 import io.liter.web.api.review.view.ReviewDetail;
 import io.liter.web.api.review.view.ReviewList;
+import io.liter.web.api.user.User;
 import io.liter.web.api.user.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
@@ -22,6 +23,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
+import java.util.Objects;
 
 import static org.springframework.web.reactive.function.server.ServerResponse.*;
 
@@ -29,13 +31,11 @@ import static org.springframework.web.reactive.function.server.ServerResponse.*;
 @Component
 public class ReviewHandler {
 
-    //todo:getAll -> findAllByUserId    OK!
-    //todo:getId -> findByReviewId      OK!
-    //todo:post -> post                 ING~(tag 추가)
-    //todo:delete -> delete
-    //todo::getIsActive -> isActive
-
-    private final MongoTemplate mongoTemplate;
+    //todo:getAll   -> findAllByUserId      OK!
+    //todo:getId    -> findByReviewId       OK!
+    //todo:post     -> post                 ING~(tag 추가)
+    //todo:delete   -> delete               OK!
+    //todo:put      -> put                  ING~(tag 추가 / Content-Type 프론트랑 맞춰야 함(json? form-data?)
 
     private final UserRepository userRepository;
 
@@ -48,14 +48,12 @@ public class ReviewHandler {
     private final LikeRepository likeRepository;
 
     public ReviewHandler(
-            MongoTemplate mongoTemplate
-            , UserRepository userRepository
+            UserRepository userRepository
             , ReviewRepository reviewRepository
             , MediaCollectionRepository mediaCollectionRepository
             , FollowerRepository followerRepository
             , LikeRepository likeRepository
     ) {
-        this.mongoTemplate = mongoTemplate;
         this.userRepository = userRepository;
         this.reviewRepository = reviewRepository;
         this.mediaCollectionRepository = mediaCollectionRepository;
@@ -90,16 +88,15 @@ public class ReviewHandler {
                                     return follower;
                                 }))
                 .flatMap(follower -> this.reviewRepository.countByUserIdIn(follower.getFollowerId()))
-                .map(count -> {
+                .flatMap(count -> {
                     pagination.setTotal(count);
                     pagination.setPage(page);
                     pagination.setSize(size);
 
                     reviewList.setPagination(pagination);
 
-                    return reviewList;
+                    return ok().body(BodyInserters.fromObject(reviewList));
                 })
-                .flatMap(r -> ServerResponse.ok().body(BodyInserters.fromObject(r)))
                 .switchIfEmpty(notFound().build());
     }
 
@@ -113,7 +110,7 @@ public class ReviewHandler {
         ObjectId reviewId = new ObjectId(request.pathVariable("id"));
 
         Mono<ServerResponse> responseNoLogin =
-                ServerResponse.ok().body(this.reviewRepository.findById(reviewId),Review.class)
+                ServerResponse.ok().body(this.reviewRepository.findById(reviewId), Review.class)
                         .switchIfEmpty(notFound().build());
 
         return request.principal()
@@ -126,18 +123,17 @@ public class ReviewHandler {
                 })
                 .flatMap(user -> this.likeRepository.countByReviewIdAndLikeId(reviewId, user.getId()))
                 .map(likeCount -> {
-                    int likeActive = likeCount > 0 ? 1 : 0 ;
+                    int likeActive = likeCount > 0 ? 1 : 0;
                     reviewDetail.setUserLikeActive(likeActive);
 
                     return likeCount;
                 })
                 .flatMap(r -> this.reviewRepository.findById(reviewId))
-                .map(review -> {
+                .flatMap(review -> {
                     reviewDetail.setReview(review);
 
-                    return reviewDetail;
+                    return ok().body(BodyInserters.fromObject(reviewDetail));
                 })
-                .flatMap(r -> ServerResponse.ok().body(BodyInserters.fromObject(r)))
                 .switchIfEmpty(responseNoLogin);
     }
 
@@ -177,67 +173,69 @@ public class ReviewHandler {
 
                             return review;
                         }))
-                .flatMap(r -> this.reviewRepository.save(r))
-                .flatMap(r -> ok().body(BodyInserters.fromObject(r)))
+                .flatMap(r -> ok().body(this.reviewRepository.save(r), Review.class))
                 .switchIfEmpty(notFound().build());
     }
 
     /**
-     * GET a Review reward active
-     */
-    public Mono<ServerResponse> isActive(ServerRequest request) {
-
-        Mono<Review> reviewMono = reviewRepository.findById(new ObjectId(request.pathVariable("id")));
-
-        return reviewMono
-                .flatMap(review -> {
-                    if (review.getRewardActive() == 1) {
-                        return ServerResponse.badRequest().build();
-                    } else {
-                        return ServerResponse.ok().build();
-                    }
-                }).switchIfEmpty(notFound().build());
-    }
-
-    /**
-     * PUT a Object
-     */
-    @PreAuthorize("hasAuthority('SCOPE_ACCESS')")
-    public Mono<ServerResponse> put(ServerRequest request) {
-        log.info("]-----] ReviewHandler::put call [-----[ ");
-
-        return Mono
-                .zip(
-                        (data) -> {
-                            Review r = (Review) data[0];
-                            Review r2 = (Review) data[1];
-
-                            if (r.getTitle().isEmpty() == false) {
-                                r.setTitle(r2.getTitle());
-                            }
-                            if (r.getContent().isEmpty() == false) {
-                                r.setContent(r2.getContent());
-                            }
-
-                            return r;
-                        },
-                        this.reviewRepository.findById(new ObjectId(request.pathVariable("id"))),
-                        request.bodyToMono(Review.class)
-                )
-                .cast(Review.class)
-                .flatMap((post) -> this.reviewRepository.save(post))
-                .flatMap((post) -> noContent().build());
-    }
-
-    /**
-     * DELETE a Object
+     * DELETE a Review
      */
     @PreAuthorize("hasAuthority('SCOPE_ACCESS')")
     public Mono<ServerResponse> delete(ServerRequest request) {
         log.info("]-----] ReviewHandler::delete call [-----[ ");
 
-        return this.reviewRepository.findById(new ObjectId(request.pathVariable("id")))
-                .flatMap((post) -> noContent().build())
+        ObjectId reviewId = new ObjectId(request.pathVariable("id"));
+
+        return request.principal()
+                .map(p -> p.getName())
+                .flatMap(user -> this.userRepository.findByUsername(user))
+                .flatMap(user -> this.reviewRepository.findById(reviewId)
+                        .filter(review -> Objects.equals(review.getUserId(), user.getId()))
+                        .filter(review -> Objects.equals(review.getRewardActive(), 0)))          //0:보상 안받음
+                .flatMap(review -> noContent().build(this.reviewRepository.deleteById(reviewId)))
+                .switchIfEmpty(notFound().build());
+    }
+
+    /**
+     * PUT a Review
+     */
+    @PreAuthorize("hasAuthority('SCOPE_ACCESS')")
+    public Mono<ServerResponse> put(ServerRequest request) {
+        log.info("]-----] ReviewHandler::put call [-----[ ");
+
+        ObjectId reviewId = new ObjectId(request.pathVariable("id"));
+
+        return request.principal()
+                .map(p -> p.getName())
+                .flatMap(user -> this.userRepository.findByUsername(user))
+                .map(user -> this.reviewRepository.findById(reviewId)
+                        .filter(review -> Objects.equals(review.getUserId(), user.getId()))
+                        .filter(review -> Objects.equals(review.getRewardActive(), 0)))         //0:보상 안받음
+                .flatMap(review -> Mono
+                        .zip(
+                                (data) -> {
+                                    Review original = (Review) data[0];
+                                    Review modified = (Review) data[1];
+
+                                    original.setTitle(modified.getTitle().isEmpty() ? original.getTitle() : modified.getTitle());
+                                    original.setContent(modified.getContent().isEmpty() ? original.getContent() : modified.getContent());
+
+                                    return original;
+                                }
+                                , review
+                                , request.body(BodyExtractors.toMultipartData())
+                                        .map(map -> {
+                                            Review formData = new Review();
+
+                                            Map<String, Part> parts = map.toSingleValueMap();
+
+                                            formData.setTitle(((FormFieldPart) parts.get("title")).value());
+                                            formData.setContent(((FormFieldPart) parts.get("content")).value());
+
+                                            return formData;
+                                        })
+                        ).cast(Review.class))
+                .flatMap(review -> ok().body(this.reviewRepository.save(review), Review.class))
                 .switchIfEmpty(notFound().build());
     }
 }
