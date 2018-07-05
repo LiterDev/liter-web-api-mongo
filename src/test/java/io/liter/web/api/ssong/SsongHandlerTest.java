@@ -17,9 +17,11 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.time.Duration;
 import java.util.stream.IntStream;
 
 @RunWith(SpringRunner.class)
@@ -135,5 +137,20 @@ public class SsongHandlerTest {
                 .create(reviewListMono)
                 .expectNextCount(1)
                 .verifyComplete();
+    }
+
+    public void test_zip() {
+
+        Flux<String> stringFlux = Flux.just("{A}", "{B}", "{C}");
+
+        Flux<String> intervalFlux3 = Flux.in
+
+
+                Flux
+                .interval(Duration.ofMillis(500))
+                .zipWith(stringFlux, (i, item) -> "item " + i + ": " + item);
+
+        intervalFlux3.subscribe(System.out::println);
+
     }
 }

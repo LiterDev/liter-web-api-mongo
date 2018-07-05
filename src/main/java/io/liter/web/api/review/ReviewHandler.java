@@ -173,7 +173,7 @@ public class ReviewHandler {
 
                             return review;
                         }))
-                .flatMap(r -> ok().body(this.reviewRepository.save(r),Review.class))
+                .flatMap(r -> ok().body(this.reviewRepository.save(r), Review.class))
                 .switchIfEmpty(notFound().build());
     }
 
@@ -223,9 +223,19 @@ public class ReviewHandler {
                                     return original;
                                 }
                                 , review
-                                , request.bodyToMono(Review.class)
+                                , request.body(BodyExtractors.toMultipartData())
+                                        .map(map -> {
+                                            Review formData = new Review();
+
+                                            Map<String, Part> parts = map.toSingleValueMap();
+
+                                            formData.setTitle(((FormFieldPart) parts.get("title")).value());
+                                            formData.setContent(((FormFieldPart) parts.get("content")).value());
+
+                                            return formData;
+                                        })
                         ).cast(Review.class))
-                .flatMap(review -> ok().body(this.reviewRepository.save(review),Review.class))
+                .flatMap(review -> ok().body(this.reviewRepository.save(review), Review.class))
                 .switchIfEmpty(notFound().build());
     }
 }
