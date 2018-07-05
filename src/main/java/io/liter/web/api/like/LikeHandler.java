@@ -50,40 +50,22 @@ public class LikeHandler {
         Like like = new Like();
 
         ObjectId reviewId = new ObjectId(request.pathVariable("reviewId"));
-        // Mono<Like> likeMono = likeRepository.findById();
 
         return request
                 .principal()
                 .map(p -> p.getName())
                 .flatMap(user -> this.userRepository.findByUsername(user))
                 .flatMap(user -> {
-                   /* review.setUserId((user.getId()));
-                    review.setUser(user);*/
 
-                    //like.setLikeId((user.getId()));
                     ArrayList<ObjectId>likes = new ArrayList<>();
                     likes.add(user.getId());
                     like.setLikeId(likes);
-                    //like.setLikeId(user);
                     like.setReviewId((reviewId));
 
-                    //return this.likeRepository.save(like);
 
                     return ServerResponse.ok().body(this.likeRepository.save(like), Like.class);
                 })
                 .switchIfEmpty(notFound().build());
-/*
-                               .flatMap(like -> this.likeRepository.save(like))
-               .flatMap(like -> ServerResponse.status(HttpStatus.CREATED).contentType(MediaType.APPLICATION_JSON_UTF8).body(fromObject(like)))
-                .switchIfEmpty(badRequest().build());
-*/
-
-
-
-
-                /*.flatMap(r -> this.reviewRepository.save(review))
-                .flatMap(r -> ServerResponse.status(HttpStatus.CREATED).contentType(MediaType.APPLICATION_JSON_UTF8).body(fromObject(review)))
-                .switchIfEmpty(badRequest().build());*/
     }
 
 
