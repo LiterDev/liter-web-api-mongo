@@ -14,7 +14,7 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 public class LikeRouter {
 
     @Bean
-    public RouterFunction<ServerResponse> likerouterFunction(LikeHandler handler) {
+    public RouterFunction<ServerResponse> likeRouterFunction(LikeHandler handler) {
         return RouterFunctions
                 .nest(path("/like"),
                         route(GET("/{id}").and(accept(APPLICATION_JSON_UTF8)), handler::getById)

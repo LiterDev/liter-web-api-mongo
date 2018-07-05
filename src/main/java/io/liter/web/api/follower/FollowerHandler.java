@@ -32,26 +32,27 @@ public class FollowerHandler {
     }
 
     public Mono<ServerResponse> findAllByUserId (ServerRequest request) {
+        log.info("]-----] FollowerHandler::findAllByUserId call [-----[ ");
 
-        ObjectId userId = new ObjectId(request.pathVariable("id"));
+        ObjectId userId = new ObjectId(request.pathVariable("userId"));
 
         return ok().build();
     }
 
     public Mono<ServerResponse> post (ServerRequest request) {
-        log.info("]-----] post [-----[");
+        log.info("]-----] FollowerHandler::post call [-----[ ");
 
         Follower follower = new Follower();
 
-        ObjectId userId = new ObjectId(request.pathVariable("id"));
+        ObjectId userId = new ObjectId(request.pathVariable("userId"));
 
         return request.principal()
                 .map(p -> p.getName())
-                .flatMap(user -> this.userRepository.findByUsername(user))
-                .flatMap(user -> {
+                .flatMap(following -> this.userRepository.findByUsername(following))
+                .flatMap(following -> {
                     ArrayList<ObjectId> followerList = new ArrayList<>();
 
-                    followerList.add(follower.getId());
+                    followerList.add(following.getId());
 
                     follower.setFollowerId(followerList);
                     follower.setUserId(userId);
@@ -60,5 +61,4 @@ public class FollowerHandler {
                 })
                 .switchIfEmpty(notFound().build());
     }
-
 }
