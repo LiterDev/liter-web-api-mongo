@@ -139,18 +139,4 @@ public class SsongHandlerTest {
                 .verifyComplete();
     }
 
-    public void test_zip() {
-
-        Flux<String> stringFlux = Flux.just("{A}", "{B}", "{C}");
-
-        Flux<String> intervalFlux3 = Flux.in
-
-
-                Flux
-                .interval(Duration.ofMillis(500))
-                .zipWith(stringFlux, (i, item) -> "item " + i + ": " + item);
-
-        intervalFlux3.subscribe(System.out::println);
-
-    }
 }

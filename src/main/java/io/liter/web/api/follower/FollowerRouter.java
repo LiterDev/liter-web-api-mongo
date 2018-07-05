@@ -1,4 +1,4 @@
-package io.liter.web.api.reply;
+package io.liter.web.api.follower;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,14 +11,14 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
 @Configuration
-public class ReplyRouter {
+public class FollowerRouter {
 
     @Bean
-    public RouterFunction<ServerResponse> replyRouterFunction(ReplyHandler handler) {
+    public RouterFunction<ServerResponse> followerRouterFunction(FollowerHandler handler) {
         return RouterFunctions
-                .nest(path("/reply"),
-                        route(GET("/{reviewId}").and(accept(MediaType.APPLICATION_JSON_UTF8)), handler::findAllByReviewId)
-                        .andRoute(POST("/{reviewId}").and(accept(MediaType.APPLICATION_JSON_UTF8)), handler::post)
+                .nest(path("/follower"),
+                        route(GET("/{id}").and(accept(MediaType.APPLICATION_JSON_UTF8)), handler::findAllByUserId)
+                        .andRoute(POST("/{id}").and(accept(MediaType.APPLICATION_JSON_UTF8)), handler::post)
                 );
     }
 }

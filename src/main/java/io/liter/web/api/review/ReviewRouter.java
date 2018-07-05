@@ -14,7 +14,7 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 public class ReviewRouter {
 
     @Bean
-    public RouterFunction<ServerResponse> routerFunction(ReviewHandler handler) {
+    public RouterFunction<ServerResponse> reviewRouterFunction(ReviewHandler handler) {
         return RouterFunctions
                 .nest(path("/review"),
                         route(GET("").and(accept(MediaType.APPLICATION_JSON_UTF8)), handler::findByUserIdIn)
