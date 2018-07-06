@@ -6,12 +6,10 @@ import io.liter.web.api.like.LikeRepository;
 import io.liter.web.api.review.view.Pagination;
 import io.liter.web.api.review.view.ReviewDetail;
 import io.liter.web.api.review.view.ReviewList;
-import io.liter.web.api.user.User;
 import io.liter.web.api.user.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.codec.multipart.FormFieldPart;
 import org.springframework.http.codec.multipart.Part;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,11 +29,12 @@ import static org.springframework.web.reactive.function.server.ServerResponse.*;
 @Component
 public class ReviewHandler {
 
-    //todo:getAll   -> findAllByUserId      OK!
-    //todo:getId    -> findByReviewId       OK!
-    //todo:post     -> post                 ING~(tag 추가)
-    //todo:delete   -> delete               OK!
-    //todo:put      -> put                  ING~(tag 추가 / Content-Type 프론트랑 맞춰야 함(json? form-data?)
+    //todo::getAll   -> findAllByUserId      OK!
+    //todo::getId    -> findByReviewId       OK!
+    //todo::post     -> post                 ING~(tag 추가)
+    //todo::delete   -> delete               OK!
+    //todo::put      -> put                  ING~(tag 추가 / Content-Type 프론트랑 맞춰야 함(json? form-data?)
+    //todo::몽고디비 암호화 기능 찾기
 
     private final UserRepository userRepository;
 
@@ -70,8 +69,8 @@ public class ReviewHandler {
         ReviewList reviewList = new ReviewList();
         Pagination pagination = new Pagination();
 
-        Integer page = request.queryParam("page").get().isEmpty() ? 0 : Integer.parseInt(request.queryParam("page").get());
-        Integer size = request.queryParam("size").get().isEmpty() ? 10 : Integer.parseInt(request.queryParam("size").get());
+        Integer page = request.queryParam("page").isPresent() ? Integer.parseInt(request.queryParam("page").get()) : 0 ;
+        Integer size = request.queryParam("size").isPresent() ? Integer.parseInt(request.queryParam("size").get()) : 10 ;
 
         return request.principal()
                 .flatMap(p -> this.userRepository.findByUsername(p.getName()))
@@ -81,7 +80,7 @@ public class ReviewHandler {
                 })
                 .flatMap(user -> this.followerRepository.findByUserId(user.getId()))
                 .flatMap(follower ->
-                        this.reviewRepository.findByUserIdIn(follower.getFollowerId(), PageRequest.of(page, size))
+                        this.reviewRepository.findByUserIdInOrderByCreatedAtDesc(follower.getFollowerId(), PageRequest.of(page, size))
                                 .collectList()
                                 .map(collections -> {
                                     reviewList.setReview(collections);
@@ -114,8 +113,7 @@ public class ReviewHandler {
                         .switchIfEmpty(notFound().build());
 
         return request.principal()
-                .map(p -> p.getName())
-                .flatMap(user -> this.userRepository.findByUsername(user))
+                .flatMap(p -> this.userRepository.findByUsername(p.getName()))
                 .map(user -> {
                     reviewDetail.setUser(user);
 
@@ -154,8 +152,7 @@ public class ReviewHandler {
         Review review = new Review();
 
         return request.principal()
-                .map(p -> p.getName())
-                .flatMap(user -> this.userRepository.findByUsername(user))
+                .flatMap(p -> this.userRepository.findByUsername(p.getName()))
                 .map(user -> {
                     review.setUserId(user.getId());
                     review.setUser(user);
@@ -187,8 +184,7 @@ public class ReviewHandler {
         ObjectId reviewId = new ObjectId(request.pathVariable("id"));
 
         return request.principal()
-                .map(p -> p.getName())
-                .flatMap(user -> this.userRepository.findByUsername(user))
+                .flatMap(p -> this.userRepository.findByUsername(p.getName()))
                 .flatMap(user -> this.reviewRepository.findById(reviewId)
                         .filter(review -> Objects.equals(review.getUserId(), user.getId()))
                         .filter(review -> Objects.equals(review.getRewardActive(), 0)))          //0:보상 안받음
@@ -206,8 +202,7 @@ public class ReviewHandler {
         ObjectId reviewId = new ObjectId(request.pathVariable("id"));
 
         return request.principal()
-                .map(p -> p.getName())
-                .flatMap(user -> this.userRepository.findByUsername(user))
+                .flatMap(p -> this.userRepository.findByUsername(p.getName()))
                 .map(user -> this.reviewRepository.findById(reviewId)
                         .filter(review -> Objects.equals(review.getUserId(), user.getId()))
                         .filter(review -> Objects.equals(review.getRewardActive(), 0)))         //0:보상 안받음

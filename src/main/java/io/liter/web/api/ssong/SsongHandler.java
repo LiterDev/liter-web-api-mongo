@@ -59,7 +59,7 @@ public class SsongHandler {
                 })
                 .flatMap(user -> this.followerRepository.findByUserId(user.getId()))
                 .flatMap(follower ->
-                        this.reviewRepository.findByUserIdIn(follower.getFollowerId(), PageRequest.of(page, size))
+                        this.reviewRepository.findByUserIdInOrderByCreatedAtDesc(follower.getFollowerId(), PageRequest.of(page, size))
                                 .collectList()
                                 .map(collections -> {
                                     reviewList.setReview(collections);
@@ -95,7 +95,7 @@ public class SsongHandler {
 
                     Review review = new Review();
                     review.setUserId(user.getId());
-                    review.setUser(user);
+                    //review.setUser(user);
 
                     review.setTitle(user.getUsername());
                     review.setContent(user.getUsername());
@@ -191,7 +191,7 @@ public class SsongHandler {
                 .flatMap(user -> this.userRepository.findByUsername(user))
                 .flatMap(user -> {
                     review.setUserId(user.getId());
-                    review.setUser(user);
+                    //review.setUser(user);
                     return Mono.just(review);
                 })
                 .flatMap(r -> this.reviewRepository.save(r))

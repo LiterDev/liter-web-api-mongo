@@ -17,9 +17,10 @@ public class FollowerRouter {
     public RouterFunction<ServerResponse> followerRouterFunction(FollowerHandler handler) {
         return RouterFunctions
                 .nest(path("/follower"),
-                        route(GET("/{userId}").and(accept(MediaType.APPLICATION_JSON_UTF8)), handler::findAllByUserId)
-                                .andRoute(GET("/{userId}").and(accept(MediaType.APPLICATION_JSON_UTF8)), handler::findAllByUserId)
-                                .andRoute(POST("/{userId}").and(accept(MediaType.APPLICATION_JSON_UTF8)), handler::post)
+                        route(GET(""), handler::findAll)
+                                .andRoute(GET("/{userId}"), handler::findAllByUserId)
+                                .andRoute(POST("/{userId}"), handler::post)
+                                .andRoute(PUT("/{userId}"), handler::put)
                 );
     }
 }
