@@ -1,5 +1,6 @@
 package io.liter.web.api.user;
 
+import io.liter.web.api.review.Review;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import org.springframework.stereotype.Repository;
@@ -14,4 +15,5 @@ public interface UserRepository extends ReactiveMongoRepository<User, ObjectId> 
 
     Mono<Long> countByIdIn(Collection<ObjectId> userId);
 
+    //Mono<Review> findByReviewId(String );
 }

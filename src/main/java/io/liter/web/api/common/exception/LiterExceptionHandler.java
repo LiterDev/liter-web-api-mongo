@@ -28,6 +28,7 @@ public class LiterExceptionHandler implements WebExceptionHandler {
         if (ex instanceof LiterException) {
             LiterException literException = (LiterException) ex;
             log.debug("]-----] UserExceptionHandler::handle httpStatus [-----[ {}", literException.getHttpStatus());
+            log.debug("]-----] UserExceptionHandler::handle ex [-----[ {}", literException.getMessage());
             exchange.getResponse().setStatusCode(literException.getHttpStatus());
             LiterErrors errors = new LiterErrors(literException.getErrorMessagerCode().getCode(), literException.getErrorMessagerCode().getResponseValue());
             if (literException.getErrors() != null) {

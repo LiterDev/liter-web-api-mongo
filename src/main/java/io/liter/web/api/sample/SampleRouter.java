@@ -24,6 +24,7 @@ public class SampleRouter {
                                 .andRoute(POST("/").and(accept(APPLICATION_JSON_UTF8)).and(contentType(APPLICATION_JSON_UTF8)), handler::post)
                                 .andRoute(PUT("/{id}").and(accept(APPLICATION_JSON_UTF8)), handler::put)
                                 .andRoute(DELETE("/{id}"), handler::delete)
+
                 );
     }
 }
