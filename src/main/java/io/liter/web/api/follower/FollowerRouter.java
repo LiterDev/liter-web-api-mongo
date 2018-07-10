@@ -1,26 +1,26 @@
-package io.liter.web.api.like;
+package io.liter.web.api.follower;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
-import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8;
 import static org.springframework.web.reactive.function.server.RequestPredicates.*;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
 @Configuration
-public class LikeRouter {
+public class FollowerRouter {
 
     @Bean
-    public RouterFunction<ServerResponse> likeRouterFunction(LikeHandler handler) {
+    public RouterFunction<ServerResponse> followerRouterFunction(FollowerHandler handler) {
         return RouterFunctions
-                .nest(path("/like"),
-                        route(GET("/{id}").and(accept(APPLICATION_JSON_UTF8)), handler::getById)
-                                .andRoute(POST("/{reviewId}").and(accept(APPLICATION_JSON_UTF8)).and(contentType(APPLICATION_JSON_UTF8)), handler::post)
-                                .andRoute(DELETE("/{id}"), handler::delete)
-
+                .nest(path("/follower"),
+                        route(GET(""), handler::findAll)
+                                .andRoute(GET("/{userId}"), handler::findAllByUserId)
+                                .andRoute(POST("/{userId}"), handler::post)
+                                .andRoute(PUT("/{userId}"), handler::put)
                 );
     }
 }

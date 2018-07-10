@@ -38,9 +38,9 @@ public class Review extends BaseEntity {
 
     private long replyCount;
 
-    private BigDecimal rewardLitercube;
+    private int rewardActive; //리뷰보상여부
 
-    private Integer rewardActive; //리뷰보상여부
+    private BigDecimal rewardLitercube;
 
     private List<String> reviewTag = new ArrayList<>();
 

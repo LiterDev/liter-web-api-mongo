@@ -15,5 +15,7 @@ public class ReviewDetail implements Serializable {
 
     private User user;
 
+    private int userLikeActive;
+
     private Review review;
 }

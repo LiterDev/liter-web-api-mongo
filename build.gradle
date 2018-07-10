@@ -47,4 +47,5 @@ dependencies {
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.5'
 //**aws**//
     compile ('com.amazonaws:aws-java-sdk-s3')
+
 }

@@ -1,6 +1,8 @@
 package io.liter.web.api.ssong;
 
 import io.liter.web.api.follower.FollowerRepository;
+import io.liter.web.api.like.Like;
+import io.liter.web.api.like.LikeRepository;
 import io.liter.web.api.review.Review;
 import io.liter.web.api.review.ReviewContentType;
 import io.liter.web.api.review.ReviewRepository;
@@ -20,11 +22,11 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.springframework.web.reactive.function.server.ServerResponse.notFound;
+import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
 @Slf4j
 @Component
@@ -38,6 +40,8 @@ public class SsongHandler {
     private FollowerRepository followerRepository;
     @Autowired
     private SsongRepository ssongRepository;
+    @Autowired
+    private LikeRepository likeRepository;
 
     public Mono<ServerResponse> get(ServerRequest request) {
         log.info("]-----]SsongHandler :: GET[-----[");
@@ -55,7 +59,7 @@ public class SsongHandler {
                 })
                 .flatMap(user -> this.followerRepository.findByUserId(user.getId()))
                 .flatMap(follower ->
-                        this.reviewRepository.findByUserIdIn(follower.getFollowerId(), PageRequest.of(page, size))
+                        this.reviewRepository.findByUserIdInOrderByCreatedAtDesc(follower.getFollowerId(), PageRequest.of(page, size))
                                 .collectList()
                                 .map(collections -> {
                                     reviewList.setReview(collections);
@@ -83,7 +87,7 @@ public class SsongHandler {
                 .switchIfEmpty(notFound().build());
     }
 
-    public Mono<ServerResponse> postReview(ServerRequest request) {
+    public Mono<ServerResponse> testSaveReview(ServerRequest request) {
         log.info("]-----] post [-----[ ");
 
         return this.userRepository.findByUsername("test001")
@@ -91,7 +95,7 @@ public class SsongHandler {
 
                     Review review = new Review();
                     review.setUserId(user.getId());
-                    review.setUser(user);
+                    //review.setUser(user);
 
                     review.setTitle(user.getUsername());
                     review.setContent(user.getUsername());
@@ -102,14 +106,54 @@ public class SsongHandler {
 
     }
 
+    public Mono<ServerResponse> formdata(ServerRequest request){
+
+        Review review = new Review();
+
+        return request.body(BodyExtractors.toMultipartData())
+                        .map(map -> {
+                            Map<String, Part> parts = map.toSingleValueMap();
+
+                            review.setTitle(((FormFieldPart) parts.get("title")).value());
+                            review.setContent(((FormFieldPart) parts.get("content")).value());
+
+                            //todo: tag배열 받아오기
+
+                            return ServerResponse.ok().build();
+                        })
+                .flatMap(r -> ServerResponse.ok().build())
+                .switchIfEmpty(notFound().build());
+
+    }
+
+    public Mono<ServerResponse> postLike(ServerRequest request){
+
+        Like like = new Like();
+
+        ObjectId reviewId = new ObjectId(request.pathVariable("id"));
+
+        return this.userRepository.findByUsername("test001")
+                .flatMap(user -> {
+                    List<ObjectId> likeId = new ArrayList<>();
+                    likeId.add(user.getId());
+
+                    like.setLikeId(likeId);
+
+                    like.setReviewId(reviewId);
+
+                    return ServerResponse.ok().body(this.likeRepository.save(like), Like.class);
+                })
+                .switchIfEmpty(notFound().build());
+    }
+
     /**
      * ================================================================================================================
      */
 
     /**
-     * POST a ReviewHandler Post Sample
+     * POST a form data Post Sample
      */
-    public Mono<ServerResponse> reviewPostSample(ServerRequest request) {
+    public Mono<ServerResponse> test_formdata(ServerRequest request) {
         log.info("]-----] ReviewHandler::post call [-----[ ");
 
         /*
@@ -147,11 +191,43 @@ public class SsongHandler {
                 .flatMap(user -> this.userRepository.findByUsername(user))
                 .flatMap(user -> {
                     review.setUserId(user.getId());
-                    review.setUser(user);
+                    //review.setUser(user);
                     return Mono.just(review);
                 })
                 .flatMap(r -> this.reviewRepository.save(r))
                 .flatMap(r -> ServerResponse.ok().body(BodyInserters.fromObject(r)))
+                .switchIfEmpty(notFound().build());
+    }
+
+    /**
+     * PUT a json Sample
+     */
+    public Mono<ServerResponse> test_put(ServerRequest request) {
+        log.info("]-----] ReviewHandler::put call [-----[ ");
+
+        ObjectId reviewId = new ObjectId(request.pathVariable("id"));
+
+        return request.principal()
+                .map(p -> p.getName())
+                .flatMap(user -> this.userRepository.findByUsername(user))
+                .map(user -> this.reviewRepository.findById(reviewId)
+                        .filter(review -> Objects.equals(review.getUserId(), user.getId()))
+                        .filter(review -> Objects.equals(review.getRewardActive(), 0)))         //0:보상 안받음
+                .flatMap(review -> Mono
+                        .zip(
+                                (data) -> {
+                                    Review original = (Review) data[0];
+                                    Review modified = (Review) data[1];
+
+                                    original.setTitle(modified.getTitle().isEmpty() ? original.getTitle() : modified.getTitle());
+                                    original.setContent(modified.getContent().isEmpty() ? original.getContent() : modified.getContent());
+
+                                    return original;
+                                }
+                                , review
+                                , request.bodyToMono(Review.class)
+                        ).cast(Review.class))
+                .flatMap(review -> ok().body(this.reviewRepository.save(review),Review.class))
                 .switchIfEmpty(notFound().build());
     }
 }

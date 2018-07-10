@@ -12,7 +12,6 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 @Configuration
 public class SsongRouter {
 
-
     @Bean
     public RouterFunction<ServerResponse> ssongRouterFunction(SsongHandler handler) {
 
@@ -20,7 +19,9 @@ public class SsongRouter {
                 .nest(path("/ssong"),
                         route(GET(""), handler::get)
                                 .andRoute(GET("/all"), handler::getall)
-                                .andRoute(GET("/review"), handler::postReview)
+                                .andRoute(GET("/review"), handler::testSaveReview)
+                                .andRoute(POST("/formdata"), handler::formdata)
+                                .andRoute(POST("/like/{id}"), handler::postLike)
                 );
     }
 }

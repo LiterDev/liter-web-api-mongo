@@ -110,7 +110,7 @@ public class SampleHandler {
 
         return sampleMono
                 .flatMap(sample -> sampleRepository.save(sample))
-                .flatMap(sample -> ServerResponse.status(HttpStatus.CREATED).contentType(MediaType.APPLICATION_JSON_UTF8).body(fromObject(sample)))
+                 .flatMap(sample -> ServerResponse.status(HttpStatus.CREATED).contentType(MediaType.APPLICATION_JSON_UTF8).body(fromObject(sample)))
                 .switchIfEmpty(badRequest().build());
 
     }
