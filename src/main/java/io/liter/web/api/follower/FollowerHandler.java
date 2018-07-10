@@ -58,6 +58,10 @@ public class FollowerHandler {
         Integer page = request.queryParam("page").isPresent() ? Integer.parseInt(request.queryParam("page").get()) : 0 ;
         Integer size = request.queryParam("size").isPresent() ? Integer.parseInt(request.queryParam("size").get()) : 10 ;
 
+        log.info("]-----] page [-----[ {}", page);
+        log.info("]-----] size [-----[ {}", size);
+
+
         return request.principal()
                 .flatMap(p -> this.userRepository.findByUsername(p.getName()))
                 .flatMap(user -> this.followerRepository.findByUserId(user.getId()))

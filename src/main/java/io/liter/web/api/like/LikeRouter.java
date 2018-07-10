@@ -17,8 +17,8 @@ public class LikeRouter {
     public RouterFunction<ServerResponse> likeRouterFunction(LikeHandler handler) {
         return RouterFunctions
                 .nest(path("/like"),
-                        route(GET("/{id}").and(accept(APPLICATION_JSON_UTF8)), handler::getById)
-                                .andRoute(POST("/{reviewId}").and(accept(APPLICATION_JSON_UTF8)).and(contentType(APPLICATION_JSON_UTF8)), handler::post)
+                        route(GET("/{reviewId}"),handler::getById)
+                                .andRoute(POST("/{reviewId}").and(accept(APPLICATION_JSON_UTF8)), handler::post)
                                 .andRoute(DELETE("/{id}"), handler::delete)
 
                 );
