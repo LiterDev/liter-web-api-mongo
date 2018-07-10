@@ -20,6 +20,7 @@ public class SsongRouter {
                         route(GET(""), handler::get)
                                 .andRoute(GET("/all"), handler::getall)
                                 .andRoute(GET("/review"), handler::testSaveReview)
+                                .andRoute(GET("/follower"), handler::getFollower)
                                 .andRoute(POST("/formdata"), handler::formdata)
                                 .andRoute(POST("/like/{id}"), handler::postLike)
                 );

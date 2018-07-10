@@ -1,5 +1,6 @@
 package io.liter.web.api.ssong;
 
+import io.liter.web.api.follower.Follower;
 import io.liter.web.api.follower.FollowerRepository;
 import io.liter.web.api.like.Like;
 import io.liter.web.api.like.LikeRepository;
@@ -46,40 +47,18 @@ public class SsongHandler {
     public Mono<ServerResponse> get(ServerRequest request) {
         log.info("]-----]SsongHandler :: GET[-----[");
 
-        ReviewList reviewList = new ReviewList();
-        Pagination pagination = new Pagination();
+        Integer page = request.queryParam("page").isPresent() ? Integer.parseInt(request.queryParam("page").get()) : 0 ;
+        Integer size = request.queryParam("size").isPresent() ? Integer.parseInt(request.queryParam("size").get()) : 10 ;
 
-        Integer page = 0;
-        Integer size = 100;
+        List<ObjectId> idList = new ArrayList<>();
 
-        return  this.userRepository.findByUsername("test002")
-                .map(user -> {
-                    reviewList.setUser(user);
-                    return user;
-                })
-                .flatMap(user -> this.followerRepository.findByUserId(user.getId()))
-                .flatMap(follower ->
-                        this.reviewRepository.findByUserIdInOrderByCreatedAtDesc(follower.getFollowerId(), PageRequest.of(page, size))
-                                .collectList()
-                                .map(collections -> {
-                                    reviewList.setReview(collections);
-                                    return follower;
-                                }))
-                .flatMap(follower -> this.reviewRepository.countByUserIdIn(follower.getFollowerId()))
-                .map(count -> {
-                    pagination.setTotal(count);
-                    pagination.setPage(page);
-                    pagination.setSize(size);
+        idList.add(new ObjectId("5b3cb9f6c650c224af186194"));
 
-                    reviewList.setPagination(pagination);
-
-                    return reviewList;
-                })
-                .flatMap(r -> ServerResponse.ok().body(BodyInserters.fromObject(r)))
-                .switchIfEmpty(notFound().build());
+        return ok().body(this.reviewRepository.findByUserIdInOrderByCreatedAtDesc(idList, PageRequest.of(page, size)), Review.class);
     }
 
-    public Mono<ServerResponse> getall(ServerRequest request) {
+    public Mono<ServerResponse> getall(ServerRequest
+                                               request) {
 
         return this.followerRepository.findById(new ObjectId("5b3a1cdcc650c21d9eb4863b"))
                 .map(f -> this.reviewRepository.countByUserIdIn(f.getFollowerId()))
@@ -229,5 +208,19 @@ public class SsongHandler {
                         ).cast(Review.class))
                 .flatMap(review -> ok().body(this.reviewRepository.save(review),Review.class))
                 .switchIfEmpty(notFound().build());
+    }
+
+    public Mono<ServerResponse> getFollower(ServerRequest request) {
+
+        return this.followerRepository.findByUserIdInAndFollowerIdIn(new ObjectId("5b3d8bb5c650c28bf4c68c0a")
+                , new ObjectId("5b3dc734c650c2d0849ca727"))
+                .map(f -> {
+                    log.info("]-----] getFollower [-----[ {}", f);
+
+                    return f;
+                })
+                .flatMap(f -> ok().body(Mono.just(f), Follower.class))
+                .switchIfEmpty(notFound().build());
+
     }
 }

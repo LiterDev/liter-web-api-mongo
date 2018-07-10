@@ -20,7 +20,6 @@ public class FollowerRouter {
                         route(GET(""), handler::findAll)
                                 .andRoute(GET("/{userId}"), handler::findAllByUserId)
                                 .andRoute(POST("/{userId}"), handler::post)
-                                .andRoute(PUT("/{userId}"), handler::put)
                 );
     }
 }

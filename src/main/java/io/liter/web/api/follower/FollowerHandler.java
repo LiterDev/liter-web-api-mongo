@@ -5,17 +5,21 @@ import io.liter.web.api.review.view.Pagination;
 import io.liter.web.api.user.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
-import static org.springframework.web.reactive.function.server.ServerResponse.notFound;
-import static org.springframework.web.reactive.function.server.ServerResponse.ok;
+import static org.springframework.web.reactive.function.server.ServerResponse.*;
 
 @Slf4j
 @Component
@@ -26,14 +30,18 @@ public class FollowerHandler {
     //todo::post                    ->  post
     //todo::put                     ->  put
 
+    private final ReactiveMongoTemplate mongoTemplate;
+
     private final UserRepository userRepository;
 
     private final FollowerRepository followerRepository;
 
     public FollowerHandler(
-            UserRepository userRepository
+            ReactiveMongoTemplate mongoTemplate
+            , UserRepository userRepository
             , FollowerRepository followerRepository
     ) {
+        this.mongoTemplate = mongoTemplate;
         this.userRepository = userRepository;
         this.followerRepository = followerRepository;
     }
@@ -106,6 +114,8 @@ public class FollowerHandler {
                 .flatMap(follower -> this.userRepository.findAllById(follower.getFollowerId())
                         .collectList()
                         .map(collections -> {
+                            //todo::팔로워가 나를 팔로잉하고 있는지 확인
+
                             followerList.setFollowerUser(collections);
                             return follower;
                         }))
@@ -127,42 +137,64 @@ public class FollowerHandler {
      */
     public Mono<ServerResponse> post(ServerRequest request) {
         log.info("]-----] FollowerHandler::post call [-----[ ");
+        /**
+         * 1. jwt 나의 user 정보
+         * 2. 팔로워 하려는(userId) 유저를 내가 이미 팔로워 하고 있는지 확인
+         * 3. boolean == false 이면, Set.add(내 아이디)
+         */
 
-        Follower follower = new Follower();
         ObjectId userId = new ObjectId(request.pathVariable("userId"));
 
+        /*
+        Query query = new Query(Criteria.where("_id").is(new ObjectId("5b3d8efec650c290079b3a8a")));
+
+        Update update = new Update().addToSet("followerId"
+                , new ObjectId("5b3dc734c650c2d0849ca727"));
+
+        reactiveMongoTemplate.findAndModify(query, update, Follower.class)
+                .map(f -> {
+                            log.debug("]-----] getUpsertedId [-----[ {}", f);
+
+                            return null;
+                        }
+                )
+                .switchIfEmpty(null)
+                .subscribe();
+        */
+
+        Query query = new Query();
+        Update update = new Update();
+
         return request.principal()
-                .flatMap(p -> this.userRepository.findByUsername(p.getName()))
-                .flatMap(following -> {
-                    ArrayList<ObjectId> followerList = new ArrayList<>();
-
-                    followerList.add(following.getId());
-
-                    follower.setFollowerId(followerList);
-                    follower.setUserId(userId);
-
-                    return ok().body(this.followerRepository.save(follower), Follower.class);
-                })
+                .flatMap(p -> this.userRepository.findByUsername(p.getName())
+                        .filter(user -> Objects.equals(userId, user.getId()) == false))
+                .doOnNext(user -> query.addCriteria(Criteria.where("userId").is(userId)))
+                .doOnNext(user -> update.addToSet("followerId", user.getId()))
+                .flatMap(user -> mongoTemplate.updateFirst(query, update, Follower.class))
+                .doOnNext(f -> log.debug("]-----] getMatchedCount [-----[ {}", f.getMatchedCount()))
+                .doOnNext(f -> log.debug("]-----] getModifiedCount [-----[ {}", f.getModifiedCount()))
+                .doOnNext(f -> log.debug("]-----] wasAcknowledged [-----[ {}", f.wasAcknowledged()))
+                .doOnNext(f -> log.debug("]-----] getClass [-----[ {}", f.getClass()))
+                .flatMap(r -> ok().build())
                 .switchIfEmpty(notFound().build());
     }
 
     /**
      * PUT a Follower
      */
-    public Mono<ServerResponse> put(ServerRequest request) {
-        log.info("]-----] FollowerHandler::pust call [-----[ ");
+    public Mono<ServerResponse> put(ObjectId followerId, ObjectId userId) {
+        log.info("]-----] FollowerHandler::insertFollower call [-----[ ");
 
-        ObjectId userId = new ObjectId(request.pathVariable("userId"));
+        Follower follower = new Follower();
+        Set<ObjectId> idSet = new HashSet<>();
 
-        /*return request.principal()
-                .map(p -> p.getName())
-                .flatMap(username -> this.userRepository.findByUsername(username)
-                        .filter(user -> (Objects.equals(user.getId(), userId) == false)))
-                .flatMap()*/
+        idSet.add(followerId);
 
+        follower.setUserId(userId);
+        follower.setFollowerCount(idSet.size());
+        follower.setFollowerId(idSet);
 
-        return ok().build();
-
-
+        return ok().body(this.followerRepository.save(follower), Follower.class)
+                .switchIfEmpty(badRequest().build());
     }
 }

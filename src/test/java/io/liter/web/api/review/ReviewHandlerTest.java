@@ -91,7 +91,7 @@ public class ReviewHandlerTest {
                 })
                 .flatMap(user -> this.followerRepository.findByUserId(user.getId()))
                 .flatMap(follower ->
-                        this.reviewRepository.findByUserIdIn(follower.getFollowerId(), PageRequest.of(0, 100))
+                        this.reviewRepository.findByUserIdInOrderByCreatedAtDesc(follower.getFollowerId(), PageRequest.of(0, 100))
                                 .collectList()
                                 .map(collections -> {
                                     reviewList.setReview(collections);

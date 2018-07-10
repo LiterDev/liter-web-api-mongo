@@ -15,5 +15,5 @@ public interface ReviewRepository extends ReactiveMongoRepository<Review, Object
     Flux<Review> findByUserIdInOrderByCreatedAtDesc(Collection<ObjectId> userId, Pageable pageable);
 
     Mono<Long> countByUserIdIn(Collection<ObjectId> userId);
-
+    
 }

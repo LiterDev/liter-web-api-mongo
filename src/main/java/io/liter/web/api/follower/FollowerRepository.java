@@ -9,4 +9,7 @@ import reactor.core.publisher.Mono;
 public interface FollowerRepository extends ReactiveMongoRepository<Follower, ObjectId> {
 
     Mono<Follower> findByUserId(ObjectId userId);
+
+    Mono<Follower> findByUserIdInAndFollowerIdIn(ObjectId userId, ObjectId followerId);
+
 }

@@ -24,7 +24,7 @@ import java.util.List;
 @ActiveProfiles("local")
 public class LookupTest {
 
-    private static Logger log = LoggerFactory.getLogger(SampleHandlerTest.class);
+    private static Logger log = LoggerFactory.getLogger(LookupTest.class);
 
     @Autowired
     private MongoTemplate mongoTemplate;

@@ -9,7 +9,9 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -24,5 +26,5 @@ public class Follower extends BaseEntity {
 
     private long followerCount;
 
-    private List<ObjectId> followerId = new ArrayList<>();
+    private Set<ObjectId> followerId = new HashSet<>();
 }

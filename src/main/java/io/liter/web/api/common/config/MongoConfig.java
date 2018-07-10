@@ -73,4 +73,5 @@ public class MongoConfig extends AbstractReactiveMongoConfiguration {
     public void shutdown() {
         eventLoopGroup.shutdownGracefully();
     }
+
 }
