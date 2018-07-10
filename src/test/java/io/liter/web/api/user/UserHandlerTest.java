@@ -41,7 +41,7 @@ public class UserHandlerTest {
 
     @Test
     public void signUp() {
-        UserSignUp userSign = new UserSignUp("test", "test1234!", "test1234!T");
+        UserSignUp userSign = new UserSignUp("test001", "test1234!", "test1234!T");
 
 
         EntityExchangeResult<Sample> result = webTestClient.post()
