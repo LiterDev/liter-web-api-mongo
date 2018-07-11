@@ -111,7 +111,7 @@ public class LikeHandler {
                 .flatMap(p -> this.userRepository.findByUsername(p.getName()))
                 .filter(user -> Objects.equals(reviewId, user.getId()) == false)
                 .doOnNext(user -> query.addCriteria(Criteria.where("userId").is(reviewId)))
-                .doOnNext(user -> update.addToSet("followerId", user.getId()))
+                .doOnNext(user -> update.addToSet("LikeId", user.getId()))
                 .flatMap(user -> mongoTemplate.upsert(query, update, Like.class))
                 .doOnNext(f -> log.debug("]-----] getMatchedCount [-----[ {}", f.getMatchedCount()))
                 .doOnNext(f -> log.debug("]-----] getModifiedCount [-----[ {}", f.getModifiedCount()))
