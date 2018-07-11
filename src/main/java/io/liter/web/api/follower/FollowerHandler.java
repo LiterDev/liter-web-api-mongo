@@ -166,6 +166,7 @@ public class FollowerHandler {
                 .subscribe();
         */
 
+        Follower follower = new Follower();
         Query query = new Query();
         Update update = new Update();
 
@@ -174,7 +175,7 @@ public class FollowerHandler {
                         .filter(user -> Objects.equals(userId, user.getId()) == false))
                 .doOnNext(user -> query.addCriteria(Criteria.where("userId").is(userId)))
                 .doOnNext(user -> update.addToSet("followerId", user.getId()))
-                .flatMap(user -> mongoTemplate.updateFirst(query, update, Follower.class))
+                .flatMap(user -> mongoTemplate.upsert(query, update, Follower.class))
                 .doOnNext(f -> log.debug("]-----] getMatchedCount [-----[ {}", f.getMatchedCount()))
                 .doOnNext(f -> log.debug("]-----] getModifiedCount [-----[ {}", f.getModifiedCount()))
                 .doOnNext(f -> log.debug("]-----] wasAcknowledged [-----[ {}", f.wasAcknowledged()))
