@@ -47,7 +47,7 @@ public class FollowerHandler {
     }
 
     /**
-     * test002 -> test001, test003
+     * test001 -> test002, test003
      */
 
     /**
@@ -63,8 +63,8 @@ public class FollowerHandler {
         FollowerList followerList = new FollowerList();
         Pagination pagination = new Pagination();
 
-        Integer page = request.queryParam("page").isPresent() ? Integer.parseInt(request.queryParam("page").get()) : 0 ;
-        Integer size = request.queryParam("size").isPresent() ? Integer.parseInt(request.queryParam("size").get()) : 10 ;
+        Integer page = request.queryParam("page").isPresent() ? Integer.parseInt(request.queryParam("page").get()) : 0;
+        Integer size = request.queryParam("size").isPresent() ? Integer.parseInt(request.queryParam("size").get()) : 10;
 
         log.info("]-----] page [-----[ {}", page);
         log.info("]-----] size [-----[ {}", size);
@@ -107,8 +107,8 @@ public class FollowerHandler {
         FollowerList followerList = new FollowerList();
         Pagination pagination = new Pagination();
 
-        Integer page = request.queryParam("page").isPresent() ? Integer.parseInt(request.queryParam("page").get()) : 0 ;
-        Integer size = request.queryParam("size").isPresent() ? Integer.parseInt(request.queryParam("size").get()) : 10 ;
+        Integer page = request.queryParam("page").isPresent() ? Integer.parseInt(request.queryParam("page").get()) : 0;
+        Integer size = request.queryParam("size").isPresent() ? Integer.parseInt(request.queryParam("size").get()) : 10;
 
         ObjectId userId = new ObjectId(request.pathVariable("userId"));
 
@@ -124,6 +124,7 @@ public class FollowerHandler {
                             return follower;
                         }))
                 .flatMap(follower -> this.userRepository.countByIdIn(follower.getFollowerId()))
+
                 .flatMap(count -> {
                     pagination.setTotal(count);
                     pagination.setPage(page);
@@ -139,6 +140,8 @@ public class FollowerHandler {
     /**
      * POST a Follower
      */
+
+
     public Mono<ServerResponse> post(ServerRequest request) {
         log.info("]-----] FollowerHandler::post call [-----[ ");
         /**
@@ -173,13 +176,11 @@ public class FollowerHandler {
         return request.principal()
                 .flatMap(p -> this.userRepository.findByUsername(p.getName())
                         .filter(user -> Objects.equals(userId, user.getId()) == false))
-                .doOnNext(user -> query.addCriteria(Criteria.where("userId").is(userId)))
-                .doOnNext(user -> update.addToSet("followerId", user.getId()))
+                .doOnNext(user -> query.addCriteria(Criteria.where("userId").is(userId)
+                        .andOperator(Criteria.where("followerId").ne(user.getId()))))
+                .doOnNext(user -> update.addToSet("followerId", user.getId())
+                        .inc("followerCount", 1))
                 .flatMap(user -> mongoTemplate.upsert(query, update, Follower.class))
-                .doOnNext(f -> log.debug("]-----] getMatchedCount [-----[ {}", f.getMatchedCount()))
-                .doOnNext(f -> log.debug("]-----] getModifiedCount [-----[ {}", f.getModifiedCount()))
-                .doOnNext(f -> log.debug("]-----] wasAcknowledged [-----[ {}", f.wasAcknowledged()))
-                .doOnNext(f -> log.debug("]-----] getClass [-----[ {}", f.getClass()))
                 .flatMap(r -> ok().build())
                 .switchIfEmpty(notFound().build());
     }
