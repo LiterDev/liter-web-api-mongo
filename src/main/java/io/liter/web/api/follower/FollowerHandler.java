@@ -155,15 +155,27 @@ public class FollowerHandler {
         Query query = new Query();
         Update update = new Update();
 
+        Query query2 = new Query();
+        Update update2 = new Update();
+
         ObjectId userId = new ObjectId(request.pathVariable("userId"));
 
         return request.principal()
                 .flatMap(p -> this.userRepository.findByUsername(p.getName())
                         .filter(user -> Objects.equals(userId, user.getId()) == false))
+
                 .doOnNext(user -> query.addCriteria(Criteria.where("userId").is(userId)))
-                .doOnNext(user -> update.addToSet("followerId", user.getId()))
+                .doOnNext(user -> update.currentTimestamp("updateAt"))
+
+                .doOnNext(user -> query2.addCriteria(Criteria.where("userId").is(userId))
+                        .addCriteria(Criteria.where("followerId").ne(user.getId())))
+                .doOnNext(user -> update2.addToSet("followerId", user.getId())
+                        .inc("followerCount", 1)
+                        .currentTimestamp("updateAt"))
+
                 .flatMap(user -> mongoTemplate.upsert(query, update, Follower.class))
-                .flatMap(r -> ok().body(BodyInserters.fromObject(r)))
+                .flatMap(result -> mongoTemplate.findAndModify(query2, update2, FindAndModifyOptions.options().returnNew(true).upsert(false), Follower.class))
+                .flatMap(follower -> ok().body(BodyInserters.fromObject(follower)))
                 .switchIfEmpty(notFound().build());
     }
 
