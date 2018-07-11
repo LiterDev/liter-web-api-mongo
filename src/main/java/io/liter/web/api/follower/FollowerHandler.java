@@ -1,14 +1,17 @@
 package io.liter.web.api.follower;
 
 import io.liter.web.api.follower.view.FollowerList;
+import io.liter.web.api.follower.view.FollowerPost;
 import io.liter.web.api.review.view.Pagination;
 import io.liter.web.api.user.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
+import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -149,39 +152,18 @@ public class FollowerHandler {
          * 2. 팔로워 하려는(userId) 유저를 내가 이미 팔로워 하고 있는지 확인
          * 3. boolean == false 이면, Set.add(내 아이디)
          */
-
-        ObjectId userId = new ObjectId(request.pathVariable("userId"));
-
-        /*
-        Query query = new Query(Criteria.where("_id").is(new ObjectId("5b3d8efec650c290079b3a8a")));
-
-        Update update = new Update().addToSet("followerId"
-                , new ObjectId("5b3dc734c650c2d0849ca727"));
-
-        reactiveMongoTemplate.findAndModify(query, update, Follower.class)
-                .map(f -> {
-                            log.debug("]-----] getUpsertedId [-----[ {}", f);
-
-                            return null;
-                        }
-                )
-                .switchIfEmpty(null)
-                .subscribe();
-        */
-
-        Follower follower = new Follower();
         Query query = new Query();
         Update update = new Update();
+
+        ObjectId userId = new ObjectId(request.pathVariable("userId"));
 
         return request.principal()
                 .flatMap(p -> this.userRepository.findByUsername(p.getName())
                         .filter(user -> Objects.equals(userId, user.getId()) == false))
-                .doOnNext(user -> query.addCriteria(Criteria.where("userId").is(userId)
-                        .andOperator(Criteria.where("followerId").ne(user.getId()))))
-                .doOnNext(user -> update.addToSet("followerId", user.getId())
-                        .inc("followerCount", 1))
+                .doOnNext(user -> query.addCriteria(Criteria.where("userId").is(userId)))
+                .doOnNext(user -> update.addToSet("followerId", user.getId()))
                 .flatMap(user -> mongoTemplate.upsert(query, update, Follower.class))
-                .flatMap(r -> ok().build())
+                .flatMap(r -> ok().body(BodyInserters.fromObject(r)))
                 .switchIfEmpty(notFound().build());
     }
 
