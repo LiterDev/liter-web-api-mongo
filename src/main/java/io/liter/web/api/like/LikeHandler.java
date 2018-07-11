@@ -8,6 +8,10 @@ import io.liter.web.api.user.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -15,6 +19,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 import static org.springframework.web.reactive.function.server.ServerResponse.*;
 
@@ -30,8 +35,14 @@ public class LikeHandler {
     @Autowired
     private ReviewRepository reviewRepository;
 
-    public LikeHandler(LikeRepository likeRepository) {
+    private final ReactiveMongoTemplate mongoTemplate;
+
+    public LikeHandler(LikeRepository likeRepository
+            , ReactiveMongoTemplate mongoTemplate) {
         this.likeRepository = likeRepository;
+        this.mongoTemplate = mongoTemplate;
+
+
     }
 
 
@@ -46,8 +57,8 @@ public class LikeHandler {
         LikeList likeList = new LikeList();
         Pagination paginations = new Pagination();
 
-        Integer page = request.queryParam("page").isPresent() ? Integer.parseInt(request.queryParam("page").get()) : 0 ;
-        Integer size = request.queryParam("size").isPresent() ? Integer.parseInt(request.queryParam("size").get()) : 10 ;
+        Integer page = request.queryParam("page").isPresent() ? Integer.parseInt(request.queryParam("page").get()) : 0;
+        Integer size = request.queryParam("size").isPresent() ? Integer.parseInt(request.queryParam("size").get()) : 10;
 
         ObjectId reviewId = new ObjectId((request.pathVariable("reviewId")));
 
@@ -59,9 +70,13 @@ public class LikeHandler {
                 .flatMap(p -> this.userRepository.findByUsername(p.getName()))
                 .flatMap(user -> this.likeRepository.findByReviewId(reviewId))
                 .flatMap(liker -> this.userRepository.findAllById(liker.getLikeId())
+
                         .collectList()
                         .map(col -> {
                             //todo::팔로워가 나를 팔로잉하고 있는지 확인
+
+                            /** 1.좋아요 테이블에서 팔로우 여부 가져오기
+                             * 2.like list**/
 
                             likeList.setLikeUser(col);
                             return liker;
@@ -75,7 +90,7 @@ public class LikeHandler {
                     likeList.setPagination(paginations);
                     return ok().body(BodyInserters.fromObject(likeList));
                 })
-        .switchIfEmpty(notFound().build());
+                .switchIfEmpty(notFound().build());
     }
 
 
@@ -86,24 +101,36 @@ public class LikeHandler {
     public Mono<ServerResponse> post(ServerRequest request) {
         log.info("]-----] LikeHandler::post call [-----[ ");
         Like like = new Like();
+        Query query = new Query();
+        Update update = new Update();
 
         ObjectId reviewId = new ObjectId(request.pathVariable("reviewId"));
 
         return request
                 .principal()
-                .map(p -> p.getName())
-                .flatMap(user -> this.userRepository.findByUsername(user))
-                .flatMap(user -> {
+                .flatMap(p -> this.userRepository.findByUsername(p.getName()))
+                .filter(user -> Objects.equals(reviewId, user.getId()) == false)
+                .doOnNext(user -> query.addCriteria(Criteria.where("userId").is(reviewId)))
+                .doOnNext(user -> update.addToSet("followerId", user.getId()))
+                .flatMap(user -> mongoTemplate.upsert(query, update, Like.class))
+                .doOnNext(f -> log.debug("]-----] getMatchedCount [-----[ {}", f.getMatchedCount()))
+                .doOnNext(f -> log.debug("]-----] getModifiedCount [-----[ {}", f.getModifiedCount()))
+                .doOnNext(f -> log.debug("]-----] wasAcknowledged [-----[ {}", f.wasAcknowledged()))
+                .doOnNext(f -> log.debug("]-----] getClass [-----[ {}", f.getClass()))
 
-                    ArrayList<ObjectId> likes = new ArrayList<>();
-                    likes.add(user.getId());
-                    like.setLikeId(likes);
-                    like.setReviewId((reviewId));
 
-
-                    return ServerResponse.ok().body(this.likeRepository.save(like), Like.class);
-                })
+                .flatMap(r -> ok().build())
                 .switchIfEmpty(notFound().build());
+          /*   .flatMap(user -> {
+
+                       ArrayList<ObjectId> likes = new ArrayList<>();
+                       likes.add(user.getId());
+                       like.setLikeId(likes);
+                       like.setReviewId((reviewId));
+
+
+                       return ServerResponse.ok().body(this.likeRepository.save(like), Like.class);
+                   })*/
     }
 
 
